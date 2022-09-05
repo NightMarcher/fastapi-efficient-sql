@@ -3,6 +3,11 @@ from tortoise.models import Model
 
 
 class BaseModel(Model):
+    """
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        `extend` json NOT NULL,
+    """
 
     created_at = fields.DatetimeField(auto_now_add=True, null=False, index=True)
     updated_at = fields.DatetimeField(auto_now=True, null=False, index=True)

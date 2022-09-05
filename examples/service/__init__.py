@@ -51,6 +51,10 @@ def init_db(app: FastAPI):
             },
         },
         "apps": {
+            "demo": {
+                "models": ["examples.service.models.demo.__init__"],
+                "default_connection": "demo_ro"
+            }
         }
     }
     register_tortoise(

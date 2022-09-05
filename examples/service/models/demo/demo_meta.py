@@ -1,5 +1,9 @@
-from fastapi_esql.orm.base_app import AppMetaClass
+from fastapi_esql.orm.base_app import AppMetaclass
+from tortoise import Tortoise
 
 
-class DemoMetaClass(AppMetaClass):
-    ...
+class DemoMetaclass(AppMetaclass):
+
+    @property
+    def rw_conn(self):
+        return Tortoise.get_connection("demo_rw")

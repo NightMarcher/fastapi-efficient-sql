@@ -1,19 +1,29 @@
+from random import randrange
+
+from faker import Faker
 from fastapi import APIRouter
 
+from examples.service.constants.enums import LocaleEnum
 from examples.service.managers.demo.account import AccountMgr
-from examples.service.models.demo.account import AccountIn
 
 router = APIRouter()
 
 
-@router.post("/one")
-async def create_account_view(
-    account: AccountIn
+@router.post("/bulk_init")
+async def bulk_init_view(
 ):
-    params = account.dict()
-    print(params)
-    obj = await AccountMgr.create_from_dict(params)
-    print(obj)
-    if not obj:
-        return
-    return obj.to_dict()
+    dicts = []
+    for (idx, locale) in enumerate(LocaleEnum):
+        faker = Faker(locale.value)
+        dicts.append({
+            "id": idx + 1,
+            "gender": randrange(0, 3),
+            "name": faker.name(),
+            "locale": locale.value,
+            "extend": {
+                "last_ipv4": faker.ipv4()
+            }
+        })
+    ok = await AccountMgr.bulk_create_from_dicts(dicts)
+    return {"ok": ok}
+

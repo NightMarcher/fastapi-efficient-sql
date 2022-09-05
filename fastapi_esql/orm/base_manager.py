@@ -1,11 +1,11 @@
 import traceback
 from typing import List
 
-from .base_app import AppMetaClass
+from .base_app import AppMetaclass
 from .base_model import BaseModel
 
 
-class BaseManager(metaclass=AppMetaClass):
+class BaseManager(metaclass=AppMetaclass):
 
     obj = BaseModel
 
@@ -15,13 +15,13 @@ class BaseManager(metaclass=AppMetaClass):
         try:
             return await cls.obj.create(**params)
         except Exception as e:
-            print(e)
-            print(traceback.format_exc())
+            traceback.print_exc()
             return None
 
     @classmethod
     async def bulk_create_from_dicts(cls, dicts: List[dict]) -> bool:
         try:
+            print(dicts)
             await cls.obj.bulk_create(
                 objects=[cls.obj(**d) for d in dicts],
                 using_db=cls.rw_conn,

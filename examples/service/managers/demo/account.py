@@ -5,4 +5,4 @@ from examples.service.models.demo.demo_meta import DemoMetaclass
 
 
 class AccountMgr(BaseManager, metaclass=DemoMetaclass):
-    obj = Account
+    model = Account

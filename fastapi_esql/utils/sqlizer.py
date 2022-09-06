@@ -1,6 +1,8 @@
 from json import dumps
 from typing import List, Optional
 
+from fastapi_esql.const.error import WrongParamsError
+
 
 class SQLizer:
 
@@ -14,9 +16,12 @@ class SQLizer:
         elif isinstance(value, (int, float, bool)):
             return f"{value}"
         elif isinstance(value, (dict, list)):
+            dumped = dumps(value, ensure_ascii=False)
             if to_json:
-                return f"JSON_EXTRACT('{dumps(value, ensure_ascii=False)}', '$')"
-            return f"'{dumps(ensure_ascii=False)}'"
+                return f"JSON_EXTRACT('{dumped}', '$')"
+                # Same with above line
+                # return f"CAST('{dumped}' AS JSON)"
+            return f"'{dumped}'"
         else:
             return f"'{value}'"
 
@@ -30,13 +35,40 @@ class SQLizer:
         """
         """
         if not all([table, fields, wheres]):
-            return
+            raise WrongParamsError("Please check your params")
 
         sql = f"""
 SELECT {", ".join(fields)}
 FROM {table}
 WHERE {" AND ".join(wheres)}
         """
+        print(sql)
+        return sql
+
+    @classmethod
+    def upsert_json(
+        cls,
+        table: str,
+        json_field: str,
+        path_value_dict: dict,
+        wheres: List[str],
+    ) -> Optional[str]:
+        """
+        """
+        if not all([table, json_field, path_value_dict, wheres]):
+            raise WrongParamsError("Please check your params")
+
+        params = []
+        for (path, value) in path_value_dict.items():
+            params.append(f"'{path}'")
+            params.append(cls._sqlize_value(value, to_json=True))
+
+        sql = f"""
+UPDATE {table}
+SET {json_field} = JSON_SET(COALESCE({json_field}, '{{}}'), {", ".join(params)})
+WHERE {" AND ".join(wheres)}
+            """
+        print(sql)
         return sql
 
     @classmethod
@@ -50,7 +82,7 @@ WHERE {" AND ".join(wheres)}
         """
         """
         if not all([table, wheres] or not any([remain_fields, assign_field_dict])):
-            return
+            raise WrongParamsError("Please check your params")
 
         fields = [*remain_fields]
         assign_fields = []
@@ -68,31 +100,6 @@ WHERE {" AND ".join(wheres)}
         return sql
 
     @classmethod
-    def upsert_json_field(
-        cls,
-        table: str,
-        wheres: List[str],
-        json_field: str,
-        path_value_dict: dict,
-    ) -> Optional[str]:
-        """
-        """
-        if not all([table, wheres, json_field, path_value_dict]):
-            return
-
-        params = []
-        for (path, value) in path_value_dict.items():
-            params.append(f"'{path}'")
-            params.append(cls._sqlize_value(value, to_json=True))
-
-        sql = f"""
-UPDATE {table}
-SET {json_field} = JSON_SET(COALESCE({json_field}, '{{}}'), {", ".join(params)})
-WHERE {" AND ".join(wheres)}
-            """
-        return sql
-
-    @classmethod
     def upsert_on_duplicate_key(
         cls,
         table: str,
@@ -103,7 +110,7 @@ WHERE {" AND ".join(wheres)}
         """
         """
         if not all([table, dicts, insert_fields, upsert_fields]):
-            return
+            raise WrongParamsError("Please check your params")
 
         values = []
         for d in dicts:

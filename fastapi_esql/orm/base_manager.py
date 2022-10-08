@@ -1,4 +1,4 @@
-import traceback
+import logging
 from typing import List, Optional
 
 from tortoise.backends.base.client import BaseDBAsyncClient
@@ -6,6 +6,8 @@ from tortoise.backends.base.client import BaseDBAsyncClient
 from .base_app import AppMetaclass
 from .base_model import BaseModel
 from ..utils.sqlizer import SQLizer
+
+logger = logging.getLogger(__name__)
 
 
 class BaseManager(metaclass=AppMetaclass):
@@ -18,7 +20,7 @@ class BaseManager(metaclass=AppMetaclass):
         try:
             return await cls.model.create(**params)
         except Exception as e:
-            traceback.print_exc()
+            logger.exception(e)
             return None
 
     @classmethod
@@ -30,7 +32,7 @@ class BaseManager(metaclass=AppMetaclass):
             )
             return True
         except Exception as e:
-            traceback.print_exc()
+            logger.exception(e)
             return False
 
     @classmethod
@@ -48,8 +50,8 @@ class BaseManager(metaclass=AppMetaclass):
         conn = conn or cls.ro_conn
         try:
             return await conn.execute_query_dict(sql)
-        except Exception:
-            traceback.print_exc()
+        except Exception as e:
+            logger.exception(e)
             return []
 
     @classmethod
@@ -70,6 +72,6 @@ class BaseManager(metaclass=AppMetaclass):
         try:
             row_cnt, _ = await conn.execute_query(sql)
             return row_cnt
-        except Exception:
-            traceback.print_exc()
+        except Exception as e:
+            logger.exception(e)
             return None

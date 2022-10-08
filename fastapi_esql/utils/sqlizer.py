@@ -1,7 +1,10 @@
+import logging
 from json import dumps
 from typing import List, Optional
 
 from fastapi_esql.const.error import WrongParamsError
+
+logger = logging.getLogger(__name__)
 
 
 class SQLizer:
@@ -18,9 +21,9 @@ class SQLizer:
         elif isinstance(value, (dict, list)):
             dumped = dumps(value, ensure_ascii=False)
             if to_json:
-                return f"JSON_EXTRACT('{dumped}', '$')"
+                return f"CAST('{dumped}' AS JSON)"
                 # Same with above line
-                # return f"CAST('{dumped}' AS JSON)"
+                # return f"JSON_EXTRACT('{dumped}', '$')"
             return f"'{dumped}'"
         else:
             return f"'{value}'"
@@ -41,8 +44,8 @@ class SQLizer:
 SELECT {", ".join(fields)}
 FROM {table}
 WHERE {" AND ".join(wheres)}
-        """
-        print(sql)
+"""
+        logger.debug(sql)
         return sql
 
     @classmethod
@@ -67,8 +70,8 @@ WHERE {" AND ".join(wheres)}
 UPDATE {table}
 SET {json_field} = JSON_SET(COALESCE({json_field}, '{{}}'), {", ".join(params)})
 WHERE {" AND ".join(wheres)}
-            """
-        print(sql)
+"""
+        logger.debug(sql)
         return sql
 
     @classmethod
@@ -96,7 +99,8 @@ INSERT INTO {table}
 SELECT {", ".join(remain_fields + assign_fields)}
 FROM {table}
 WHERE {" AND ".join(wheres)}
-        """
+"""
+        print(sql)
         return sql
 
     @classmethod
@@ -126,5 +130,6 @@ INSERT INTO {table}
 VALUES
 {", ".join(values)}
 ON DUPLICATE KEY UPDATE {", ".join(upserts)}
-            """
+"""
+        print(sql)
         return sql

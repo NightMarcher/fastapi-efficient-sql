@@ -20,7 +20,6 @@ dictConfig({
         "": {
             "handlers": ["console"],
             "level": "INFO",
-            "propagate": False,
         },
         "fastapi_esql.utils.sqlizer": {
             "handlers": ["console"],

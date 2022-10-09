@@ -1,3 +1,5 @@
+from logging.config import dictConfig
+
 from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
 
@@ -6,6 +8,33 @@ from .routers import api_router
 app = FastAPI(
     title="FastAPI Efficient SQL Service Demo",
 )
+dictConfig({
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "[%(asctime)s] %(levelname)s %(name)s:%(lineno)d:%(funcName)s %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+            "level": "DEBUG",
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+        "examples.service.routers.account": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    }
+})
 
 
 @app.on_event("startup")

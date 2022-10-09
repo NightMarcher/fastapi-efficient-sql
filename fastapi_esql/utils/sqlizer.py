@@ -5,6 +5,15 @@ from typing import List, Optional
 from fastapi_esql.const.error import WrongParamsError
 
 logger = logging.getLogger(__name__)
+# ensure the functionality of the RawSQL
+try:
+    from tortoise.expressions import RawSQL
+except ImportError:
+    from tortoise.expressions import Term
+    class RawSQL(Term):
+        def __init__(self, sql: str):
+            super().__init__()
+            self.sql = sql
 
 
 class SQLizer:
@@ -16,6 +25,8 @@ class SQLizer:
         """
         if value is None:
             return "NULL"
+        elif isinstance(value, RawSQL):
+            return value.sql
         elif isinstance(value, (int, float, bool)):
             return f"{value}"
         elif isinstance(value, (dict, list)):
@@ -29,7 +40,7 @@ class SQLizer:
             return f"'{value}'"
 
     @classmethod
-    def query_custom_fields(
+    def select_custom_fields(
         cls,
         table: str,
         fields: List[str],
@@ -41,10 +52,10 @@ class SQLizer:
             raise WrongParamsError("Please check your params")
 
         sql = f"""
-SELECT {", ".join(fields)}
+SELECT
+{", ".join(fields)}
 FROM {table}
-WHERE {" AND ".join(wheres)}
-"""
+WHERE {" AND ".join(wheres)}"""
         logger.debug(sql)
         return sql
 
@@ -69,8 +80,37 @@ WHERE {" AND ".join(wheres)}
         sql = f"""
 UPDATE {table}
 SET {json_field} = JSON_SET(COALESCE({json_field}, '{{}}'), {", ".join(params)})
-WHERE {" AND ".join(wheres)}
-"""
+WHERE {" AND ".join(wheres)}"""
+        logger.debug(sql)
+        return sql
+
+    @classmethod
+    def upsert_on_duplicate_key(
+        cls,
+        table: str,
+        dicts: List[dict],
+        insert_fields: List[str],
+        upsert_fields: List[str],
+    ) -> Optional[str]:
+        """
+        """
+        if not all([table, dicts, insert_fields, upsert_fields]):
+            raise WrongParamsError("Please check your params")
+
+        values = []
+        for d in dicts:
+            values.append(f"({', '.join(cls._sqlize_value(d.get(f)) for f in insert_fields)})")
+        logger.debug(values)
+        upserts = []
+        for field in upsert_fields:
+            upserts.append(f"{field}=VALUES({field})")
+
+        sql = f"""
+INSERT INTO {table}
+({", ".join(insert_fields)})
+VALUES
+{", ".join(values)}
+ON DUPLICATE KEY UPDATE {", ".join(upserts)}"""
         logger.debug(sql)
         return sql
 
@@ -92,44 +132,13 @@ WHERE {" AND ".join(wheres)}
         for k, v in assign_field_dict.items():
             fields.append(k)
             assign_fields.append(f"{cls._sqlize_value(v)} {k}")
+        logger.debug(assign_fields)
 
         sql = f"""
 INSERT INTO {table}
     ({", ".join(fields)})
 SELECT {", ".join(remain_fields + assign_fields)}
 FROM {table}
-WHERE {" AND ".join(wheres)}
-"""
-        print(sql)
-        return sql
-
-    @classmethod
-    def upsert_on_duplicate_key(
-        cls,
-        table: str,
-        dicts: List[dict],
-        insert_fields,
-        upsert_fields,
-    ) -> Optional[str]:
-        """
-        """
-        if not all([table, dicts, insert_fields, upsert_fields]):
-            raise WrongParamsError("Please check your params")
-
-        values = []
-        for d in dicts:
-            values.append(
-                f"({', '.join(map(lambda val: cls._sqlize_value(d.get(val)), insert_fields))})")
-        upserts = []
-        for field in upsert_fields:
-            upserts.append(f"{field}=VALUES({field})")
-
-        sql = f"""
-INSERT INTO {table}
-({", ".join(insert_fields)})
-VALUES
-{", ".join(values)}
-ON DUPLICATE KEY UPDATE {", ".join(upserts)}
-"""
-        print(sql)
+WHERE {" AND ".join(wheres)}"""
+        logger.debug(sql)
         return sql

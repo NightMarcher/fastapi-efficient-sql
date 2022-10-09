@@ -1,12 +1,15 @@
+import logging
 from typing import List
 
 from faker import Faker
 from fastapi import APIRouter, Body, Query
+from fastapi_esql.utils.sqlizer import RawSQL
 
 from examples.service.constants.enums import LocaleEnum
 from examples.service.managers.demo.account import AccountMgr
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/bulk_init")
@@ -27,6 +30,7 @@ async def bulk_init_view():
                 }
             }
         })
+    logger.debug(dicts)
     ok = await AccountMgr.bulk_create_from_dicts(dicts)
     return {"ok": ok}
 
@@ -35,7 +39,7 @@ async def bulk_init_view():
 async def query_last_login_view(
     account_ids: List[int] = Body(..., embed=True),
 ):
-    dicts = await AccountMgr.query_custom_fields(
+    dicts = await AccountMgr.select_custom_fields(
         fields=[
             "id", "extend ->> '$.last_login.ipv4' ipv4",
             "extend ->> '$.last_login.start_datetime' start_datetime",
@@ -43,7 +47,7 @@ async def query_last_login_view(
         ],
         wheres=[f"id IN ({', '.join(map(str, account_ids))})"],
     )
-    return dicts
+    return {"dicts": dicts}
 
 
 @router.post("/last_login/update")
@@ -63,4 +67,41 @@ async def update_last_login_view(
         },
         wheres=[f"id = {account_id}"],
     )
-    return row_cnt
+    return {"row_cnt": row_cnt}
+
+
+@router.post("/bulk_upsert")
+async def bulk_upsert_view():
+    dicts = []
+    for (idx, locale) in enumerate(LocaleEnum, 5):
+        faker = Faker(locale.value)
+        dicts.append({
+            "id": idx,
+            "gender": faker.random_int(0, 2),
+            "name": faker.name(),
+            "locale": locale.value,
+            "extend": {},
+        })
+    logger.debug(dicts)
+    row_cnt = await AccountMgr.upsert_on_duplicate_key(
+        dicts,
+        insert_fields=["id", "gender", "name", "locale", "extend"],
+        upsert_fields=["name", "locale"],
+    )
+    return {"row_cnt": row_cnt}
+
+
+@router.post("/clone")
+async def clone_account_view(
+    account_ids: List[int] = Body(..., embed=True),
+):
+    ok = await AccountMgr.insert_into_select(
+        wheres=[f"id IN ({', '.join(map(str, account_ids))})"],
+        remain_fields=["gender", "locale"],
+        assign_field_dict={
+            "active": False,
+            "name": RawSQL("CONCAT(LEFT(name, 26), ' [NEW]')"),
+            "extend": {},
+        },
+    )
+    return {"ok": ok}

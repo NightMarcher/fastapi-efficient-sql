@@ -36,13 +36,13 @@ class BaseManager(metaclass=AppMetaclass):
             return False
 
     @classmethod
-    async def query_custom_fields(
+    async def select_custom_fields(
         cls,
         fields: List[str],
         wheres: List[str],
         conn: Optional[BaseDBAsyncClient] = None,
-    ) -> List[dict]:
-        sql = SQLizer.query_custom_fields(
+    ) -> Optional[List[dict]]:
+        sql = SQLizer.select_custom_fields(
             cls.model._meta.db_table,
             fields,
             wheres,
@@ -52,7 +52,7 @@ class BaseManager(metaclass=AppMetaclass):
             return await conn.execute_query_dict(sql)
         except Exception as e:
             logger.exception(e)
-            return []
+            return None
 
     @classmethod
     async def upsert_json(
@@ -75,3 +75,47 @@ class BaseManager(metaclass=AppMetaclass):
         except Exception as e:
             logger.exception(e)
             return None
+
+    @classmethod
+    async def upsert_on_duplicate_key(
+        cls,
+        dicts: List[dict],
+        insert_fields: List[str],
+        upsert_fields: List[str],
+        conn: Optional[BaseDBAsyncClient] = None,
+    ) -> Optional[int]:
+        sql = SQLizer.upsert_on_duplicate_key(
+            cls.model._meta.db_table,
+            dicts,
+            insert_fields,
+            upsert_fields,
+        )
+        conn = conn or cls.rw_conn
+        try:
+            row_cnt, _ = await conn.execute_query(sql)
+            return row_cnt
+        except Exception as e:
+            logger.exception(e)
+            return None
+
+    @classmethod
+    async def insert_into_select(
+        cls,
+        wheres: List[str],
+        remain_fields: List[str],
+        assign_field_dict: dict,
+        conn: Optional[BaseDBAsyncClient] = None,
+    ) -> bool:
+        sql = SQLizer.insert_into_select(
+            cls.model._meta.db_table,
+            wheres,
+            remain_fields,
+            assign_field_dict,
+        )
+        conn = conn or cls.rw_conn
+        try:
+            await conn.execute_query(sql)
+            return True
+        except Exception as e:
+            logger.exception(e)
+            return False

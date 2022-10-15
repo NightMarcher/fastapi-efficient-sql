@@ -1,18 +1,22 @@
-from abc import abstractproperty
+from abc import ABCMeta
 
 
-class AppMetaclass(type):
+class AppMetaclass(ABCMeta):
 
-    @abstractproperty
+    @property
     def ro_conn(self):
         """
         return Tortoise.get_connection("ro_conn")
         """
-        raise NotImplementedError(f"{self.__class__.__name__}`s property method 'ro_conn' was not implemented!")
+        if not getattr(self, "get_ro_conn", None):
+            raise NotImplementedError(f"Method get_ro_conn() was not implemented by {self.__class__.__name__}!")
+        return self.get_ro_conn()
 
-    @abstractproperty
+    @property
     def rw_conn(self):
         """
         return Tortoise.get_connection("rw_conn")
         """
-        raise NotImplementedError(f"{self.__class__.__name__}`s property method 'rw_conn' was not implemented!")
+        if not getattr(self, "get_rw_conn", None):
+            raise NotImplementedError(f"Method get_rw_conn() was not implemented by {self.__class__.__name__}!")
+        return self.get_rw_conn()

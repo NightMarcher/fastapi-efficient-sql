@@ -33,6 +33,11 @@ dictConfig({
             "level": "DEBUG",
             "propagate": False,
         },
+        "examples.service.routers.basic": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
     }
 })
 

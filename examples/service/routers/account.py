@@ -55,7 +55,7 @@ async def update_last_login_view(
     account_id: int = Query(...),
 ):
     faker = Faker()
-    row_cnt = await AccountMgr.upsert_json(
+    row_cnt = await AccountMgr.upsert_json_field(
         json_field="extend",
         path_value_dict={
             "$.last_login": {
@@ -73,8 +73,8 @@ async def update_last_login_view(
 @router.post("/bulk_upsert")
 async def bulk_upsert_view():
     dicts = []
-    for (idx, locale) in enumerate(LocaleEnum, 5):
-        faker = Faker(locale.value)
+    for (idx, locale) in enumerate([LocaleEnum.ja_JP, LocaleEnum.en_IN, LocaleEnum.zh_CN], 7):
+        faker = Faker(locale)
         dicts.append({
             "id": idx,
             "gender": faker.random_int(0, 2),
@@ -83,7 +83,7 @@ async def bulk_upsert_view():
             "extend": {},
         })
     logger.debug(dicts)
-    row_cnt = await AccountMgr.upsert_on_duplicate_key(
+    row_cnt = await AccountMgr.upsert_on_duplicated(
         dicts,
         insert_fields=["id", "gender", "name", "locale", "extend"],
         upsert_fields=["name", "locale"],
@@ -91,7 +91,7 @@ async def bulk_upsert_view():
     return {"row_cnt": row_cnt}
 
 
-@router.post("/clone")
+@router.post("/bulk_clone")
 async def clone_account_view(
     account_ids: List[int] = Body(..., embed=True),
 ):

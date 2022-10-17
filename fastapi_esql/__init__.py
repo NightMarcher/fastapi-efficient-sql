@@ -6,7 +6,7 @@ dictConfig({
     "disable_existing_loggers": False,
     "formatters": {
         "default": {
-            "format": "[%(asctime)s] %(levelname)s %(name)s:%(lineno)d:%(funcName)s %(message)s",
+            "format": "[%(asctime)s] %(levelname)s %(name)s:%(funcName)s:+%(lineno)d %(message)s",
         },
     },
     "handlers": {

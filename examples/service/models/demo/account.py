@@ -1,5 +1,6 @@
-from fastapi_esql.orm.base_model import BaseModel, fields
+from fastapi_esql import BaseModel
 from tortoise.contrib.pydantic import pydantic_model_creator
+from tortoise import fields
 
 from examples.service.constants.enums import GenderEnum, LocaleEnum
 

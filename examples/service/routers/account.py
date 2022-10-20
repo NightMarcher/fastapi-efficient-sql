@@ -12,6 +12,31 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+@router.post("/create")
+async def create_view():
+    faker = Faker(LocaleEnum.zh_CN.value)
+    account = await AccountMgr.create_from_dict({
+        "gender": faker.random_int(0, 2),
+        "name": faker.name(),
+        "locale": LocaleEnum.zh_CN.value,
+    })
+    return {"account": account}
+
+
+@router.post("/update")
+async def update_view():
+    account = await AccountMgr.model.filter(id=7).first()
+    if not account:
+        return {"found": False, "ok": False}
+
+    faker = Faker(account.locale)
+    ok = await AccountMgr.update_from_dict(account, {
+        "gender": faker.random_int(0, 2),
+        "name": faker.name(),
+    })
+    return {"found": True, "ok": ok}
+
+
 @router.post("/bulk_init")
 async def bulk_init_view():
     dicts = []

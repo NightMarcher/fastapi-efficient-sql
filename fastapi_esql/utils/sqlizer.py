@@ -46,8 +46,6 @@ class SQLizer:
         fields: List[str],
         wheres: List[str],
     ) -> Optional[str]:
-        """
-        """
         if not all([table, fields, wheres]):
             raise WrongParamsError("Please check your params")
 
@@ -67,8 +65,6 @@ class SQLizer:
         path_value_dict: Dict[str, Any],
         wheres: List[str],
     ) -> Optional[str]:
-        """
-        """
         if not all([table, json_field, path_value_dict, wheres]):
             raise WrongParamsError("Please check your params")
 
@@ -92,8 +88,6 @@ class SQLizer:
         insert_fields: List[str],
         upsert_fields: List[str],
     ) -> Optional[str]:
-        """
-        """
         if not all([table, dicts, insert_fields, upsert_fields]):
             raise WrongParamsError("Please check your params")
 
@@ -122,8 +116,6 @@ class SQLizer:
         remain_fields: List[str],
         assign_field_dict: Dict[str, Any],
     ) -> Optional[str]:
-        """
-        """
         if not all([table, wheres] or not any([remain_fields, assign_field_dict])):
             raise WrongParamsError("Please check your params")
 

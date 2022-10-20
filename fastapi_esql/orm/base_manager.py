@@ -26,6 +26,18 @@ class BaseManager(metaclass=AppMetaclass):
             return None
 
     @classmethod
+    async def update_from_dict(cls, obj: Model, params: Dict[str, Any]) -> bool:
+        try:
+            await obj.update_from_dict(params).save(
+                update_fields=params.keys(),
+                using_db=cls.rw_conn,
+            )
+            return True
+        except Exception as e:
+            logger.exception(e)
+            return False
+
+    @classmethod
     async def bulk_create_from_dicts(cls, dicts: List[Dict[str, Any]]) -> bool:
         try:
             await cls.model.bulk_create(

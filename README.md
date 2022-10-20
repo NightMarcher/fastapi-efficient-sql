@@ -1,6 +1,32 @@
 # fastapi-efficient-sql
 
+## Some preparations before using efficient sql
+```python
+from fastapi_esql import AppMetaclass, BaseManager, BaseModel
 
+
+class DemoMetaclass(AppMetaclass):
+
+    def get_ro_conn(self):
+        return Tortoise.get_connection("demo_ro")
+
+    def get_rw_conn(self):
+        return Tortoise.get_connection("demo_rw")
+
+
+class Account(BaseModel):
+    id = fields.IntField(pk=True)
+    active = fields.BooleanField(null=False, default=True)
+    gender = fields.IntEnumField(GenderEnum, null=False, default=GenderEnum.unknown)
+    name = fields.CharField(max_length=32, null=False, default="")
+    locale = fields.CharEnumField(LocaleEnum, max_length=5, null=False)
+
+
+class AccountMgr(BaseManager, metaclass=DemoMetaclass):
+    model = Account
+```
+
+## Some supported efficient sql
 ### **select_custom_fields**
 ```python
 await AccountMgr.select_custom_fields(

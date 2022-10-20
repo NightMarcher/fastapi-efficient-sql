@@ -1,4 +1,4 @@
-from fastapi_esql.orm.base_app import AppMetaclass
+from fastapi_esql import AppMetaclass
 from tortoise import Tortoise
 
 

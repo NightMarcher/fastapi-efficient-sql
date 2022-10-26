@@ -1,10 +1,10 @@
-import logging
+from logging import getLogger
 from json import dumps
 from typing import Any, Dict, List, Optional
 
 from ..const.error import WrongParamsError
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 # ensure the functionality of the RawSQL
 try:
     from tortoise.expressions import RawSQL

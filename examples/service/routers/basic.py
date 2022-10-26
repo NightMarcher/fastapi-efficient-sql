@@ -1,11 +1,11 @@
 from asyncio import sleep
-import logging
+from logging import getLogger
 from time import perf_counter
 
 from fastapi import APIRouter, BackgroundTasks
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 @router.get("/ping")

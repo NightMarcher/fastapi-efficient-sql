@@ -1,6 +1,6 @@
 """
 working directory: fastapi-efficient-sql/
-command: python -m examples.service.main
+command: python -m examples.service
 """
 import uvicorn
 

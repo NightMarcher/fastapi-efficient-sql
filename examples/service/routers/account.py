@@ -1,4 +1,4 @@
-import logging
+from logging import getLogger
 from typing import List
 
 from faker import Faker
@@ -9,7 +9,7 @@ from examples.service.constants.enums import LocaleEnum
 from examples.service.managers.demo.account import AccountMgr
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 @router.post("/create")

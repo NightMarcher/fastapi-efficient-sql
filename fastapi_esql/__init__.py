@@ -1,16 +1,24 @@
 from logging.config import dictConfig
 
+from .const.error import WrongParamsError
 from .orm.base_app import AppMetaclass
 from .orm.base_manager import BaseManager
 from .orm.base_model import BaseModel
+from .utils.cursor_handler import CursorHandler
+from .utils.decorator import timing
 from .utils.sqlizer import RawSQL, SQLizer
+
+__version__ = "0.1.0"
 
 __all__ = [
     "AppMetaclass",
     "BaseManager",
     "BaseModel",
+    "CursorHandler",
     "RawSQL",
     "SQLizer",
+    "WrongParamsError",
+    "timing",
 ]
 
 dictConfig({

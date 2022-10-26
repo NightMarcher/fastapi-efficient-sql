@@ -1,4 +1,4 @@
-import logging
+from logging import getLogger
 from typing import Any, Dict, List, Optional
 
 from tortoise.backends.base.client import BaseDBAsyncClient
@@ -9,7 +9,7 @@ from .base_model import BaseModel
 from ..utils.sqlizer import SQLizer
 from ..utils.cursor_handler import CursorHandler
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 class BaseManager(metaclass=AppMetaclass):

@@ -13,6 +13,9 @@ class BaseModel(Model):
     updated_at = fields.DatetimeField(auto_now=True, null=False, index=True)
     extend = fields.JSONField(null=False, default={})
 
+    class Meta:
+        abstract = True
+
     def __str__(self):
         return self.__repr__()
 

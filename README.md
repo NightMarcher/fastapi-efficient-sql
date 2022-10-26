@@ -38,12 +38,30 @@ await AccountMgr.select_custom_fields(
     wheres=[f"id IN (1, 2, 3)"],
 )
 ```
-Generated sql
+Generate sql and execute
 ```sql
     SELECT
         id, extend ->> '$.last_login.ipv4' ipv4, extend ->> '$.last_login.start_datetime' start_datetime, CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec
     FROM account
     WHERE id IN (1, 2, 3)
+```
+
+```python
+await AccountMgr.select_custom_fields(
+    fields=[
+        "locale", "gender", "COUNT(1) cnt"
+    ],
+    wheres=["id BETWEEN 1 AND 12"],
+    groupbys=["locale", "gender"],
+)
+```
+Generate sql and execute
+```sql
+    SELECT
+        locale, gender, COUNT(1) cnt
+    FROM account
+    WHERE id BETWEEN 1 AND 12
+    GROUP BY locale, gender
 ```
 
 ### **upsert_json_field**
@@ -61,7 +79,7 @@ await AccountMgr.upsert_json_field(
     wheres=[f"id = 8"],
 )
 ```
-Generated sql
+Generate sql and execute
 ```sql
     UPDATE account
     SET extend = JSON_SET(COALESCE(extend, '{}'), '$.last_login', CAST('{"ipv4": "209.182.101.161", "start_datetime": "2022-10-16 11:11:05", "online_sec": 4209}' AS JSON), '$.uuid', 'fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f')
@@ -80,7 +98,7 @@ await AccountMgr.upsert_on_duplicated(
     upsert_fields=["name", "locale"],
 )
 ```
-Generated sql
+Generate sql and execute
 ```sql
     INSERT INTO account
         (id, gender, name, locale, extend)
@@ -101,7 +119,7 @@ await AccountMgr.insert_into_select(
     },
 )
 ```
-Generated sql
+Generate sql and execute
 ```sql
     INSERT INTO account
         (gender, locale, active, name, extend)

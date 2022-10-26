@@ -45,15 +45,18 @@ class SQLizer:
         table: str,
         fields: List[str],
         wheres: List[str],
+        groupbys: Optional[List[str]] = None,
     ) -> Optional[str]:
         if not all([table, fields, wheres]):
             raise WrongParamsError("Please check your params")
 
+        group_by = f"GROUP BY {', '.join(groupbys)}" if groupbys else ""
         sql = f"""
     SELECT
         {", ".join(fields)}
     FROM {table}
-    WHERE {" AND ".join(wheres)}"""
+    WHERE {" AND ".join(wheres)}
+    {group_by}"""
         logger.debug(sql)
         return sql
 

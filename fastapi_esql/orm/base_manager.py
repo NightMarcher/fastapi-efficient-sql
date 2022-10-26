@@ -17,6 +17,14 @@ class BaseManager(metaclass=AppMetaclass):
     model = BaseModel
 
     @classmethod
+    async def get_by_pk(
+        cls,
+        pk: Any,
+        conn: Optional[BaseDBAsyncClient] = None,
+    ) -> Optional[Model]:
+        return await cls.model.get_or_none(pk=pk, using_db=conn)
+
+    @classmethod
     async def create_from_dict(cls, params: Dict[str, Any]) -> Optional[Model]:
         params["using_db"] = cls.rw_conn
         try:
@@ -54,12 +62,14 @@ class BaseManager(metaclass=AppMetaclass):
         cls,
         fields: List[str],
         wheres: List[str],
+        groupbys: Optional[List[str]] = None,
         conn: Optional[BaseDBAsyncClient] = None,
     ):
         sql = SQLizer.select_custom_fields(
-            cls.model._meta.db_table,
+            cls.table,
             fields,
             wheres,
+            groupbys,
         )
         conn = conn or cls.ro_conn
         return await CursorHandler.fetch_dicts(sql, conn, logger)
@@ -70,16 +80,14 @@ class BaseManager(metaclass=AppMetaclass):
         json_field: str,
         path_value_dict: Dict[str, Any],
         wheres: List[str],
-        conn: Optional[BaseDBAsyncClient] = None,
     ):
         sql = SQLizer.upsert_json_field(
-            cls.model._meta.db_table,
+            cls.table,
             json_field,
             path_value_dict,
             wheres,
         )
-        conn = conn or cls.rw_conn
-        return await CursorHandler.calc_row_cnt(sql, conn, logger)
+        return await CursorHandler.calc_row_cnt(sql, cls.rw_conn, logger)
 
     @classmethod
     async def upsert_on_duplicated(
@@ -87,16 +95,14 @@ class BaseManager(metaclass=AppMetaclass):
         dicts: List[Dict[str, Any]],
         insert_fields: List[str],
         upsert_fields: List[str],
-        conn: Optional[BaseDBAsyncClient] = None,
     ):
         sql = SQLizer.upsert_on_duplicated(
-            cls.model._meta.db_table,
+            cls.table,
             dicts,
             insert_fields,
             upsert_fields,
         )
-        conn = conn or cls.rw_conn
-        return await CursorHandler.calc_row_cnt(sql, conn, logger)
+        return await CursorHandler.calc_row_cnt(sql, cls.rw_conn, logger)
 
     @classmethod
     async def insert_into_select(
@@ -104,13 +110,11 @@ class BaseManager(metaclass=AppMetaclass):
         wheres: List[str],
         remain_fields: List[str],
         assign_field_dict: Dict[str, Any],
-        conn: Optional[BaseDBAsyncClient] = None,
     ):
         sql = SQLizer.insert_into_select(
-            cls.model._meta.db_table,
+            cls.table,
             wheres,
             remain_fields,
             assign_field_dict,
         )
-        conn = conn or cls.rw_conn
-        return await CursorHandler.exec_if_ok(sql, conn, logger)
+        return await CursorHandler.exec_if_ok(sql, cls.rw_conn, logger)

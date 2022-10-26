@@ -24,8 +24,10 @@ async def create_view():
 
 
 @router.post("/update")
-async def update_view():
-    account = await AccountMgr.model.filter(id=7).first()
+async def update_view(
+    aid: int = Query(...),
+):
+    account = await AccountMgr.get_by_pk(aid)
     if not account:
         return {"found": False, "ok": False}
 
@@ -35,6 +37,27 @@ async def update_view():
         "name": faker.name(),
     })
     return {"found": True, "ok": ok}
+
+
+@router.get("/query/by_id")
+async def query_by_id_view(
+    aid: int = Query(...),
+):
+    account = await AccountMgr.get_by_pk(aid)
+    return {"account": account}
+
+
+@router.post("/query/group_by_locale")
+async def query_group_by_locale_view(
+):
+    dicts = await AccountMgr.select_custom_fields(
+        fields=[
+            "locale", "gender", "COUNT(1) cnt"
+        ],
+        wheres=["id BETWEEN 1 AND 12"],
+        groupbys=["locale", "gender"],
+    )
+    return {"dicts": dicts}
 
 
 @router.post("/bulk_init")
@@ -62,7 +85,7 @@ async def bulk_init_view():
 
 @router.post("/last_login/query")
 async def query_last_login_view(
-    account_ids: List[int] = Body(..., embed=True),
+    aids: List[int] = Body(..., embed=True),
 ):
     dicts = await AccountMgr.select_custom_fields(
         fields=[
@@ -70,14 +93,14 @@ async def query_last_login_view(
             "extend ->> '$.last_login.start_datetime' start_datetime",
             "CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec"
         ],
-        wheres=[f"id IN ({', '.join(map(str, account_ids))})"],
+        wheres=[f"id IN ({', '.join(map(str, aids))})"],
     )
     return {"dicts": dicts}
 
 
 @router.post("/last_login/update")
 async def update_last_login_view(
-    account_id: int = Query(...),
+    aid: int = Query(...),
 ):
     faker = Faker()
     row_cnt = await AccountMgr.upsert_json_field(
@@ -90,7 +113,7 @@ async def update_last_login_view(
             },
             "$.uuid": faker.uuid4(),
         },
-        wheres=[f"id = {account_id}"],
+        wheres=[f"id = {aid}"],
     )
     return {"row_cnt": row_cnt}
 
@@ -118,10 +141,10 @@ async def bulk_upsert_view():
 
 @router.post("/bulk_clone")
 async def clone_account_view(
-    account_ids: List[int] = Body(..., embed=True),
+    aids: List[int] = Body(..., embed=True),
 ):
     ok = await AccountMgr.insert_into_select(
-        wheres=[f"id IN ({', '.join(map(str, account_ids))})"],
+        wheres=[f"id IN ({', '.join(map(str, aids))})"],
         remain_fields=["gender", "locale"],
         assign_field_dict={
             "active": False,

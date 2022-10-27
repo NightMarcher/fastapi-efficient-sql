@@ -28,6 +28,7 @@ class AccountMgr(BaseManager, metaclass=DemoMetaclass):
 
 ## Some supported efficient sql
 ### **select_custom_fields**
+**without `groupbys`**
 ```python
 await AccountMgr.select_custom_fields(
     fields=[
@@ -46,6 +47,7 @@ Generate sql and execute
     WHERE id IN (1, 2, 3)
 ```
 
+**with `groupbys`**
 ```python
 await AccountMgr.select_custom_fields(
     fields=[
@@ -90,9 +92,9 @@ Generate sql and execute
 ```python
 await AccountMgr.upsert_on_duplicated(
     [
-        {'id': 7, 'gender': 1, 'name': '松田 陽一', 'locale': 'ja_JP', 'extend': {}},
-        {'id': 8, 'gender': 2, 'name': 'Zeeshan Kadakia', 'locale': 'en_IN', 'extend': {}},
-        {'id': 9, 'gender': 0, 'name': '姜淑珍', 'locale': 'zh_CN', 'extend': {}}
+        {'id': 7, 'gender': 1, 'name': '斉藤 修平', 'locale': 'ja_JP', 'extend': {}},
+        {'id': 8, 'gender': 1, 'name': 'Ojas Salvi', 'locale': 'en_IN', 'extend': {}},
+        {'id': 9, 'gender': 1, 'name': '羊淑兰', 'locale': 'zh_CN', 'extend': {}}
     ],
     insert_fields=["id", "gender", "name", "locale", "extend"],
     upsert_fields=["name", "locale"],
@@ -103,8 +105,9 @@ Generate sql and execute
     INSERT INTO account
         (id, gender, name, locale, extend)
     VALUES
-        (7, 1, '松田 陽一', 'ja_JP', '{}'), (8, 2, 'Zeeshan Kadakia', 'en_IN', '{}'), (9, 0, '姜淑珍', 'zh_CN', '{}')
-    ON DUPLICATE KEY UPDATE name=VALUES(name), locale=VALUES(locale)
+        (7, 1, '斉藤 修平', 'ja_JP', '{}'), (8, 1, 'Ojas Salvi', 'en_IN', '{}'), (9, 1, '羊淑兰', 'zh_CN', '{}')
+    AS `new_account`
+    ON DUPLICATE KEY UPDATE name=`new_account`.name, locale=`new_account`.locale
 ```
 
 ### **insert_into_select**

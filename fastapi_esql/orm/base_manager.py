@@ -46,10 +46,12 @@ class BaseManager(metaclass=AppMetaclass):
             return False
 
     @classmethod
-    async def bulk_create_from_dicts(cls, dicts: List[Dict[str, Any]]) -> bool:
+    async def bulk_create_from_dicts(cls, dicts: List[Dict[str, Any]], **kwargs) -> bool:
         try:
+            # NOTE Here is a bug in bulk_create. https://github.com/tortoise/tortoise-orm/issues/1281
             await cls.model.bulk_create(
                 objects=[cls.model(**d) for d in dicts],
+                **kwargs,
                 using_db=cls.rw_conn,
             )
             return True

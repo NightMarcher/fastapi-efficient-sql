@@ -78,8 +78,14 @@ async def bulk_init_view():
                 }
             }
         })
-    logger.debug(dicts)
-    ok = await AccountMgr.bulk_create_from_dicts(dicts)
+    # logger.debug(dicts)
+    ok = await AccountMgr.bulk_create_from_dicts(
+        dicts,
+        batch_size=5,
+        # ignore_conflicts=True,
+        update_fields=["gender", "name", "locale"],
+        on_conflict=["id"],
+    )
     return {"ok": ok}
 
 

@@ -29,7 +29,7 @@ class SQLizer:
             return value.sql
         elif isinstance(value, (int, float, bool)):
             return f"{value}"
-        elif isinstance(value, (dict, list)):
+        elif isinstance(value, (dict, list, tuple)):
             dumped = dumps(value, ensure_ascii=False)
             if to_json:
                 return f"CAST('{dumped}' AS JSON)"
@@ -98,15 +98,17 @@ class SQLizer:
         for d in dicts:
             values.append(f"({', '.join(cls._sqlize_value(d.get(f)) for f in insert_fields)})")
         # logger.debug(values)
+        new_table = f"`new_{table}`"
         upserts = []
         for field in upsert_fields:
-            upserts.append(f"{field}=VALUES({field})")
+            upserts.append(f"{field}={new_table}.{field}")
 
         sql = f"""
     INSERT INTO {table}
         ({", ".join(insert_fields)})
     VALUES
         {", ".join(values)}
+    AS {new_table}
     ON DUPLICATE KEY UPDATE {", ".join(upserts)}"""
         logger.debug(sql)
         return sql

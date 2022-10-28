@@ -28,7 +28,7 @@ class AccountMgr(BaseManager, metaclass=DemoMetaclass):
 
 ## Some supported efficient sql
 ### **select_custom_fields**
-**without `groupbys`**
+**basic example**
 ```python
 await AccountMgr.select_custom_fields(
     fields=[
@@ -47,14 +47,16 @@ Generate sql and execute
     WHERE id IN (1, 2, 3)
 ```
 
-**with `groupbys`**
+**complex example**
 ```python
 await AccountMgr.select_custom_fields(
     fields=[
         "locale", "gender", "COUNT(1) cnt"
     ],
     wheres=["id BETWEEN 1 AND 12"],
-    groupbys=["locale", "gender"],
+    groups=["locale", "gender"],
+    orders=["locale", "-gender"],
+    limit=10,
 )
 ```
 Generate sql and execute
@@ -64,6 +66,8 @@ Generate sql and execute
     FROM account
     WHERE id BETWEEN 1 AND 12
     GROUP BY locale, gender
+    ORDER BY locale ASC, gender DESC
+    LIMIT 10
 ```
 
 ### **upsert_json_field**

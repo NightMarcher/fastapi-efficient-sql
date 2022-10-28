@@ -56,7 +56,9 @@ async def query_group_by_locale_view(
             "locale", "gender", "COUNT(1) cnt"
         ],
         wheres=["id BETWEEN 1 AND 12"],
-        groupbys=["locale", "gender"],
+        groups=["locale", "gender"],
+        orders=["locale", "-gender"],
+        limit=10,
     )
     return {"dicts": dicts}
 

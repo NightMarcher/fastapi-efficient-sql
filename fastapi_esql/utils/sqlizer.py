@@ -19,6 +19,17 @@ except ImportError:
 class SQLizer:
 
     @classmethod
+    def resolve_ordering(cls, orderings: List[str]) -> str:
+        orders = []
+        for o in orderings:
+            if o.startswith("-"):
+                order = "DESC"
+            else:
+                order = "ASC"
+            orders.append(f"{o.strip('-')} {order}")
+        return ", ".join(orders)
+
+    @classmethod
     def _sqlize_value(cls, value, to_json=False) -> str:
         """
         Works like aiomysql.connection.Connection.escape
@@ -45,18 +56,30 @@ class SQLizer:
         table: str,
         fields: List[str],
         wheres: List[str],
-        groupbys: Optional[List[str]] = None,
+        groups: Optional[List[str]] = None,
+        orders: Optional[List[str]] = None,
+        limit: int = 0,
     ) -> Optional[str]:
         if not all([table, fields, wheres]):
             raise WrongParamsError("Please check your params")
 
-        group_by = f"GROUP BY {', '.join(groupbys)}" if groupbys else ""
-        sql = f"""
+        group_by = f"    GROUP BY {', '.join(groups)}" if groups else ""
+        order_by = f"    ORDER BY {cls.resolve_ordering(orders)}" if orders else ""
+        limit_ = f"    LIMIT {limit}" if limit else ""
+        # NOTE Doesn't support `offset` parameter due to it's bad performance
+        extras = [group_by, order_by, limit_]
+
+        sql = """
     SELECT
-        {", ".join(fields)}
-    FROM {table}
-    WHERE {" AND ".join(wheres)}
-    {group_by}"""
+        {}
+    FROM {}
+    WHERE {}
+{}""".format(
+        ", ".join(fields),
+        table,
+        " AND ".join(wheres),
+        "\n".join(extras) if extras else "",
+    )
         logger.debug(sql)
         return sql
 

@@ -64,14 +64,18 @@ class BaseManager(metaclass=AppMetaclass):
         cls,
         fields: List[str],
         wheres: List[str],
-        groupbys: Optional[List[str]] = None,
+        groups: Optional[List[str]] = None,
+        orders: Optional[List[str]] = None,
+        limit: int = 0,
         conn: Optional[BaseDBAsyncClient] = None,
     ):
         sql = SQLizer.select_custom_fields(
             cls.table,
             fields,
             wheres,
-            groupbys,
+            groups,
+            orders,
+            limit,
         )
         conn = conn or cls.ro_conn
         return await CursorHandler.fetch_dicts(sql, conn, logger)

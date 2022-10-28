@@ -1,0 +1,299 @@
+{
+	"info": {
+		"_postman_id": "ca623517-c9e2-44b5-9bbf-bb6c8157ab67",
+		"name": "fastapi-efficient-sql",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/account/create",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{local}}:8000/api/account/create",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/update",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{local}}:8000/api/account/update?aid=7",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"update"
+					],
+					"query": [
+						{
+							"key": "aid",
+							"value": "7"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/query/by_id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{local}}:8000/api/account/query/by_id?aid=10",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"query",
+						"by_id"
+					],
+					"query": [
+						{
+							"key": "aid",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/query/group_by_locale",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{local}}:8000/api/account/query/group_by_locale",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"query",
+						"group_by_locale"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/bulk_init",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{local}}:8000/api/account/bulk_init",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"bulk_init"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/last_login/query",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"aids\": [1, 2, 3]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local}}:8000/api/account/last_login/query",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"last_login",
+						"query"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/last_login/update",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{local}}:8000/api/account/last_login/update?account_id=8",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"last_login",
+						"update"
+					],
+					"query": [
+						{
+							"key": "account_id",
+							"value": "8"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/bulk_upsert",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{local}}:8000/api/account/bulk_upsert",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"bulk_upsert"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/bulk_clone",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"account_ids\": [4, 5, 6]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local}}:8000/api/account/bulk_clone",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"bulk_clone"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/bulk_update",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"dicts\": [\n        {\"id\": 7, \"active\": false, \"gender\": 1},\n        {\"id\": 15, \"active\": true, \"gender\": 0}\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local}}:8000/api/account/bulk_update",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"account",
+						"bulk_update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/basic/ping",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{local}}:8000/api/basic/ping",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"basic",
+						"ping"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/basic/background/sleep",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{local}}:8000/api/basic/background/sleep",
+					"host": [
+						"{{local}}"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"basic",
+						"background",
+						"sleep"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

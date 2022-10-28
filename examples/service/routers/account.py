@@ -4,8 +4,9 @@ from typing import List
 from faker import Faker
 from fastapi import APIRouter, Body, Query
 from fastapi_esql.utils.sqlizer import RawSQL
+from pydantic import BaseModel, Field
 
-from examples.service.constants.enums import LocaleEnum
+from examples.service.constants.enums import GenderEnum, LocaleEnum
 from examples.service.managers.demo.account import AccountMgr
 
 router = APIRouter()
@@ -146,7 +147,7 @@ async def bulk_upsert_view():
 
 
 @router.post("/bulk_clone")
-async def clone_account_view(
+async def bulk_clone_view(
     aids: List[int] = Body(..., embed=True),
 ):
     ok = await AccountMgr.insert_into_select(
@@ -159,3 +160,20 @@ async def clone_account_view(
         },
     )
     return {"ok": ok}
+
+
+class UpdateIn(BaseModel):
+    id: int = Field(...)
+    active: bool = Field(...)
+    gender: GenderEnum = Field(...)
+
+@router.post("/bulk_update")
+async def bulk_update_view(
+    dicts: List[UpdateIn] = Body(..., embed=True),
+):
+    row_cnt = await AccountMgr.bulk_update_with_fly_table(
+        [d.dict() for d in dicts],
+        join_fields=["id"],
+        update_fields=["active", "gender"],
+    )
+    return {"row_cnt": row_cnt}

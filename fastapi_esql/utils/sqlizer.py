@@ -94,14 +94,13 @@ class SQLizer:
         if not all([table, dicts, insert_fields, upsert_fields]):
             raise WrongParamsError("Please check your params")
 
-        values = []
-        for d in dicts:
-            values.append(f"({', '.join(cls._sqlize_value(d.get(f)) for f in insert_fields)})")
+        values = [
+            f"({', '.join(cls._sqlize_value(d.get(f)) for f in insert_fields)})"
+            for d in dicts
+        ]
         # logger.debug(values)
         new_table = f"`new_{table}`"
-        upserts = []
-        for field in upsert_fields:
-            upserts.append(f"{field}={new_table}.{field}")
+        upserts = [f"{field}={new_table}.{field}" for field in upsert_fields]
 
         sql = f"""
     INSERT INTO {table}
@@ -137,5 +136,49 @@ class SQLizer:
     SELECT {", ".join(remain_fields + assign_fields)}
     FROM {table}
     WHERE {" AND ".join(wheres)}"""
+        logger.debug(sql)
+        return sql
+
+    @classmethod
+    def build_fly_table(
+        cls,
+        dicts: List[Dict[str, Any]],
+        fields: List[str],
+    ) -> Optional[str]:
+        if not all([dicts, fields]):
+            raise WrongParamsError("Please check your params")
+
+        rows = [
+            f"ROW({', '.join(cls._sqlize_value(d.get(f)) for f in fields)})"
+            for d in dicts
+        ]
+
+        sql = f"""
+        SELECT * FROM (
+            VALUES
+                {", ".join(rows)}
+        ) AS fly_table ({", ".join(fields)})"""
+        logger.debug(sql)
+        return sql
+
+    @classmethod
+    def bulk_update_with_fly_table(
+        cls,
+        table: str,
+        dicts: List[Dict[str, Any]],
+        join_fields: List[str],
+        update_fields: List[str],
+    ) -> Optional[str]:
+        if not all([table, dicts, join_fields, update_fields]):
+            raise WrongParamsError("Please check your params")
+
+        joins = [f"{table}.{jf} = tmp.{jf}" for jf in join_fields]
+        updates = [f"{table}.{uf} = tmp.{uf}" for uf in update_fields]
+
+        sql = f"""
+    UPDATE {table}
+    JOIN ({SQLizer.build_fly_table(dicts, join_fields + update_fields)}
+    ) tmp ON {", ".join(joins)}
+    SET {", ".join(updates)}"""
         logger.debug(sql)
         return sql

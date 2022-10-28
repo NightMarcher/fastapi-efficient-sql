@@ -130,3 +130,26 @@ Generate sql and execute
     FROM account
     WHERE id IN (4, 5, 6)
 ```
+
+### **bulk_update_with_fly_table**
+```python
+await AccountMgr.bulk_update_with_fly_table(
+    [
+        {'id': 7, 'active': False, 'gender': <GenderEnum.male: 1>},
+        {'id': 15, 'active': True, 'gender': <GenderEnum.unknown: 0>}
+    ],
+    join_fields=["id"],
+    update_fields=["active", "gender"],
+)
+```
+Generate sql and execute
+```sql
+    UPDATE account
+    JOIN (
+        SELECT * FROM (
+            VALUES
+                ROW(7, False, 1), ROW(15, True, 0)
+        ) AS fly_table (id, active, gender)
+    ) tmp ON account.id = tmp.id
+    SET account.active = tmp.active, account.gender = tmp.gender
+```

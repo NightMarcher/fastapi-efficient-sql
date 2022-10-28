@@ -120,3 +120,18 @@ class BaseManager(metaclass=AppMetaclass):
             assign_field_dict,
         )
         return await CursorHandler.exec_if_ok(sql, cls.rw_conn, logger)
+
+    @classmethod
+    async def bulk_update_with_fly_table(
+        cls,
+        dicts: List[Dict[str, Any]],
+        join_fields: List[str],
+        update_fields: List[str],
+    ):
+        sql = SQLizer.bulk_update_with_fly_table(
+            cls.table,
+            dicts,
+            join_fields,
+            update_fields,
+        )
+        return await CursorHandler.calc_row_cnt(sql, cls.rw_conn, logger)

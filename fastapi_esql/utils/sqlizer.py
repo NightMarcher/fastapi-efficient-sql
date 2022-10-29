@@ -19,6 +19,10 @@ except ImportError:
 class SQLizer:
 
     @classmethod
+    def resolve_condition(cls, conditions: List[str]) -> str:
+        return " AND ".join(conditions)
+
+    @classmethod
     def resolve_ordering(cls, orderings: List[str]) -> str:
         orders = []
         for o in orderings:
@@ -57,17 +61,21 @@ class SQLizer:
         fields: List[str],
         wheres: List[str],
         groups: Optional[List[str]] = None,
+        havings: Optional[List[str]] = None,
         orders: Optional[List[str]] = None,
         limit: int = 0,
     ) -> Optional[str]:
         if not all([table, fields, wheres]):
             raise WrongParamsError("Please check your params")
+        if havings and not groups:
+            raise WrongParamsError("Please check your params")
 
         group_by = f"    GROUP BY {', '.join(groups)}" if groups else ""
+        having = f"    HAVING {cls.resolve_condition(havings)}" if havings else ""
         order_by = f"    ORDER BY {cls.resolve_ordering(orders)}" if orders else ""
         limit_ = f"    LIMIT {limit}" if limit else ""
         # NOTE Doesn't support `offset` parameter due to it's bad performance
-        extras = [group_by, order_by, limit_]
+        extras = [group_by, having, order_by, limit_]
 
         sql = """
     SELECT
@@ -77,7 +85,7 @@ class SQLizer:
 {}""".format(
         ", ".join(fields),
         table,
-        " AND ".join(wheres),
+        cls.resolve_condition(wheres),
         "\n".join(extras) if extras else "",
     )
         logger.debug(sql)
@@ -102,7 +110,7 @@ class SQLizer:
         sql = f"""
     UPDATE {table}
     SET {json_field} = JSON_SET(COALESCE({json_field}, '{{}}'), {", ".join(params)})
-    WHERE {" AND ".join(wheres)}"""
+    WHERE {cls.resolve_condition(wheres)}"""
         logger.debug(sql)
         return sql
 
@@ -158,7 +166,7 @@ class SQLizer:
         ({", ".join(fields)})
     SELECT {", ".join(remain_fields + assign_fields)}
     FROM {table}
-    WHERE {" AND ".join(wheres)}"""
+    WHERE {cls.resolve_condition(wheres)}"""
         logger.debug(sql)
         return sql
 

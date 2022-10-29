@@ -65,6 +65,7 @@ class BaseManager(metaclass=AppMetaclass):
         fields: List[str],
         wheres: List[str],
         groups: Optional[List[str]] = None,
+        havings: Optional[List[str]] = None,
         orders: Optional[List[str]] = None,
         limit: int = 0,
         conn: Optional[BaseDBAsyncClient] = None,
@@ -74,6 +75,7 @@ class BaseManager(metaclass=AppMetaclass):
             fields,
             wheres,
             groups,
+            havings,
             orders,
             limit,
         )

@@ -57,6 +57,7 @@ async def query_group_by_locale_view(
         ],
         wheres=["id BETWEEN 1 AND 12"],
         groups=["locale", "gender"],
+        havings=["cnt > 0"],
         orders=["locale", "-gender"],
         limit=10,
     )

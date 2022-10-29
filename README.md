@@ -55,6 +55,7 @@ await AccountMgr.select_custom_fields(
     ],
     wheres=["id BETWEEN 1 AND 12"],
     groups=["locale", "gender"],
+    havings=["cnt > 0"],
     orders=["locale", "-gender"],
     limit=10,
 )
@@ -66,6 +67,7 @@ Generate sql and execute
     FROM account
     WHERE id BETWEEN 1 AND 12
     GROUP BY locale, gender
+    HAVING cnt > 0
     ORDER BY locale ASC, gender DESC
     LIMIT 10
 ```

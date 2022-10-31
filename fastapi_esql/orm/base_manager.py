@@ -1,7 +1,8 @@
 from logging import getLogger
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from tortoise.backends.base.client import BaseDBAsyncClient
+from tortoise.expressions import Q
 from tortoise.models import Model
 
 from .base_app import AppMetaclass
@@ -63,9 +64,9 @@ class BaseManager(metaclass=AppMetaclass):
     async def select_custom_fields(
         cls,
         fields: List[str],
-        wheres: List[str],
+        wheres: Union[str, Q, Dict[str, Any], List[Q]],
         groups: Optional[List[str]] = None,
-        havings: Optional[List[str]] = None,
+        having: Optional[str] = None,
         orders: Optional[List[str]] = None,
         limit: int = 0,
         conn: Optional[BaseDBAsyncClient] = None,
@@ -75,9 +76,10 @@ class BaseManager(metaclass=AppMetaclass):
             fields,
             wheres,
             groups,
-            havings,
+            having,
             orders,
             limit,
+            cls.model,
         )
         conn = conn or cls.ro_conn
         return await CursorHandler.fetch_dicts(sql, conn, logger)
@@ -87,13 +89,14 @@ class BaseManager(metaclass=AppMetaclass):
         cls,
         json_field: str,
         path_value_dict: Dict[str, Any],
-        wheres: List[str],
+        wheres: Union[str, Q, Dict[str, Any], List[Q]],
     ):
         sql = SQLizer.upsert_json_field(
             cls.table,
             json_field,
             path_value_dict,
             wheres,
+            cls.model,
         )
         return await CursorHandler.calc_row_cnt(sql, cls.rw_conn, logger)
 
@@ -115,7 +118,7 @@ class BaseManager(metaclass=AppMetaclass):
     @classmethod
     async def insert_into_select(
         cls,
-        wheres: List[str],
+        wheres: Union[str, Q, Dict[str, Any], List[Q]],
         remain_fields: List[str],
         assign_field_dict: Dict[str, Any],
     ):
@@ -124,6 +127,7 @@ class BaseManager(metaclass=AppMetaclass):
             wheres,
             remain_fields,
             assign_field_dict,
+            cls.model,
         )
         return await CursorHandler.exec_if_ok(sql, cls.rw_conn, logger)
 

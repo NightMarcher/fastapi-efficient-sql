@@ -5,6 +5,7 @@ from faker import Faker
 from fastapi import APIRouter, Body, Query
 from fastapi_esql.utils.sqlizer import RawSQL
 from pydantic import BaseModel, Field
+from tortoise.expressions import Q
 
 from examples.service.constants.enums import GenderEnum, LocaleEnum
 from examples.service.managers.demo.account import AccountMgr
@@ -55,9 +56,9 @@ async def query_group_by_locale_view(
         fields=[
             "locale", "gender", "COUNT(1) cnt"
         ],
-        wheres=["id BETWEEN 1 AND 12"],
+        wheres="id BETWEEN 1 AND 12",
         groups=["locale", "gender"],
-        havings=["cnt > 0"],
+        having="cnt > 0",
         orders=["locale", "-gender"],
         limit=10,
     )
@@ -103,7 +104,10 @@ async def query_last_login_view(
             "extend ->> '$.last_login.start_datetime' start_datetime",
             "CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec"
         ],
-        wheres=[f"id IN ({', '.join(map(str, aids))})"],
+        wheres=f"id IN ({', '.join(map(str, aids))}) AND gender = 1",
+        # wheres=Q(Q(id__in=aids), Q(gender=1), join_type="AND"),
+        # wheres={"id__in": aids, "gender": 1},
+        # wheres=[Q(id__in=aids), Q(gender=1)],
     )
     return {"dicts": dicts}
 
@@ -123,7 +127,7 @@ async def update_last_login_view(
             },
             "$.uuid": faker.uuid4(),
         },
-        wheres=[f"id = {aid}"],
+        wheres=f"id = {aid}",
     )
     return {"row_cnt": row_cnt}
 
@@ -154,7 +158,7 @@ async def bulk_clone_view(
     aids: List[int] = Body(..., embed=True),
 ):
     ok = await AccountMgr.insert_into_select(
-        wheres=[f"id IN ({', '.join(map(str, aids))})"],
+        wheres=f"id IN ({', '.join(map(str, aids))})",
         remain_fields=["gender", "locale"],
         assign_field_dict={
             "active": False,

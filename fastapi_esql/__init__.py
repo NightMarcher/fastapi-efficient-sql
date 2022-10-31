@@ -1,6 +1,6 @@
 from logging.config import dictConfig
 
-from .const.error import WrongParamsError
+from .const.error import QsParsingError, WrongParamsError
 from .orm.base_app import AppMetaclass
 from .orm.base_manager import BaseManager
 from .orm.base_model import BaseModel
@@ -17,6 +17,7 @@ __all__ = [
     "CursorHandler",
     "RawSQL",
     "SQLizer",
+    "QsParsingError"
     "WrongParamsError",
     "timing",
 ]

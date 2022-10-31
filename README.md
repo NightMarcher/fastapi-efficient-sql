@@ -30,13 +30,18 @@ class AccountMgr(BaseManager, metaclass=DemoMetaclass):
 ### **select_custom_fields**
 **basic example**
 ```python
+aids = [1, 2, 3]
+
 await AccountMgr.select_custom_fields(
     fields=[
         "id", "extend ->> '$.last_login.ipv4' ipv4",
         "extend ->> '$.last_login.start_datetime' start_datetime",
         "CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec"
     ],
-    wheres=[f"id IN (1, 2, 3)"],
+    wheres=f"id IN ({', '.join(map(str, aids))}) AND gender = 1",  # These 4 ways of `wheres` can work equally
+    # wheres=Q(Q(id__in=aids), Q(gender=1), join_type="AND"),
+    # wheres={"id__in": aids, "gender": 1},
+    # wheres=[Q(id__in=aids), Q(gender=1)],
 )
 ```
 Generate sql and execute
@@ -44,7 +49,7 @@ Generate sql and execute
     SELECT
         id, extend ->> '$.last_login.ipv4' ipv4, extend ->> '$.last_login.start_datetime' start_datetime, CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec
     FROM account
-    WHERE id IN (1, 2, 3)
+    WHERE `id` IN (1,2,3) AND `gender`=1
 ```
 
 **complex example**
@@ -53,9 +58,9 @@ await AccountMgr.select_custom_fields(
     fields=[
         "locale", "gender", "COUNT(1) cnt"
     ],
-    wheres=["id BETWEEN 1 AND 12"],
+    wheres="id BETWEEN 1 AND 12",
     groups=["locale", "gender"],
-    havings=["cnt > 0"],
+    having="cnt > 0",
     orders=["locale", "-gender"],
     limit=10,
 )
@@ -84,7 +89,7 @@ await AccountMgr.upsert_json_field(
         },
         "$.uuid": "fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f",
     },
-    wheres=[f"id = 8"],
+    wheres=f"id = 8",
 )
 ```
 Generate sql and execute
@@ -119,7 +124,7 @@ Generate sql and execute
 ### **insert_into_select**
 ```python
 await AccountMgr.insert_into_select(
-    wheres=[f"id IN (4, 5, 6)"],
+    wheres=f"id IN (4, 5, 6)",
     remain_fields=["gender", "locale"],
     assign_field_dict={
         "active": False,

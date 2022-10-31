@@ -1,8 +1,12 @@
 from logging import getLogger
 from json import dumps
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
-from ..const.error import WrongParamsError
+from tortoise.expressions import Q
+from tortoise.models import Model
+from tortoise.query_utils import QueryModifier
+
+from ..const.error import QsParsingError, WrongParamsError
 
 logger = getLogger(__name__)
 # ensure the functionality of the RawSQL
@@ -19,11 +23,35 @@ except ImportError:
 class SQLizer:
 
     @classmethod
-    def resolve_condition(cls, conditions: List[str]) -> str:
-        return " AND ".join(conditions)
+    def resolve_wheres(
+        cls,
+        wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        model: Optional[Model] = None,
+    ) -> str:
+        if not model and not isinstance(wheres, str):
+            raise WrongParamsError("Parameter `wheres` only support str type if no model passed")
+
+        if isinstance(wheres, str):
+            return wheres
+        elif isinstance(wheres, Q):
+            qs = [wheres]
+        elif isinstance(wheres, dict):
+            qs = [Q(**{key: value}) for (key, value) in wheres.items()]
+        elif isinstance(wheres, list):
+            qs = [q for q in wheres if isinstance(q, Q)]
+        else:
+            raise WrongParamsError("Parameter `wheres` only supports str, dict and list type")
+
+        if not qs:
+            raise QsParsingError("Parsing `wheres` for qs failed!")
+
+        modifier = QueryModifier()
+        for q in qs:
+            modifier &= q.resolve(model, model._meta.basetable)
+        return modifier.where_criterion.get_sql(quote_char="`")
 
     @classmethod
-    def resolve_ordering(cls, orderings: List[str]) -> str:
+    def resolve_orders(cls, orderings: List[str]) -> str:
         orders = []
         for o in orderings:
             if o.startswith("-"):
@@ -59,23 +87,24 @@ class SQLizer:
         cls,
         table: str,
         fields: List[str],
-        wheres: List[str],
+        wheres: Union[str, Q, Dict[str, Any], List[Q]],
         groups: Optional[List[str]] = None,
-        havings: Optional[List[str]] = None,
+        having: Optional[str] = None,
         orders: Optional[List[str]] = None,
         limit: int = 0,
+        model: Optional[Model] = None,
     ) -> Optional[str]:
         if not all([table, fields, wheres]):
             raise WrongParamsError("Please check your params")
-        if havings and not groups:
-            raise WrongParamsError("Please check your params")
+        if having and not groups:
+            raise WrongParamsError("Parameter `groups` shoud be no empty when `having` isn't")
 
         group_by = f"    GROUP BY {', '.join(groups)}" if groups else ""
-        having = f"    HAVING {cls.resolve_condition(havings)}" if havings else ""
-        order_by = f"    ORDER BY {cls.resolve_ordering(orders)}" if orders else ""
+        having_ = f"    HAVING {having}" if having else ""
+        order_by = f"    ORDER BY {cls.resolve_orders(orders)}" if orders else ""
         limit_ = f"    LIMIT {limit}" if limit else ""
         # NOTE Doesn't support `offset` parameter due to it's bad performance
-        extras = [group_by, having, order_by, limit_]
+        extras = [group_by, having_, order_by, limit_]
 
         sql = """
     SELECT
@@ -85,8 +114,8 @@ class SQLizer:
 {}""".format(
         ", ".join(fields),
         table,
-        cls.resolve_condition(wheres),
-        "\n".join(extras) if extras else "",
+        cls.resolve_wheres(wheres, model),
+        "\n".join(i for i in extras if i),
     )
         logger.debug(sql)
         return sql
@@ -97,7 +126,8 @@ class SQLizer:
         table: str,
         json_field: str,
         path_value_dict: Dict[str, Any],
-        wheres: List[str],
+        wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        model: Optional[Model] = None,
     ) -> Optional[str]:
         if not all([table, json_field, path_value_dict, wheres]):
             raise WrongParamsError("Please check your params")
@@ -110,7 +140,7 @@ class SQLizer:
         sql = f"""
     UPDATE {table}
     SET {json_field} = JSON_SET(COALESCE({json_field}, '{{}}'), {", ".join(params)})
-    WHERE {cls.resolve_condition(wheres)}"""
+    WHERE {cls.resolve_wheres(wheres, model)}"""
         logger.debug(sql)
         return sql
 
@@ -147,9 +177,10 @@ class SQLizer:
     def insert_into_select(
         cls,
         table: str,
-        wheres: List[str],
+        wheres: Union[str, Q, Dict[str, Any], List[Q]],
         remain_fields: List[str],
         assign_field_dict: Dict[str, Any],
+        model: Optional[Model] = None,
     ) -> Optional[str]:
         if not all([table, wheres] or not any([remain_fields, assign_field_dict])):
             raise WrongParamsError("Please check your params")
@@ -166,7 +197,7 @@ class SQLizer:
         ({", ".join(fields)})
     SELECT {", ".join(remain_fields + assign_fields)}
     FROM {table}
-    WHERE {cls.resolve_condition(wheres)}"""
+    WHERE {cls.resolve_wheres(wheres, model)}"""
         logger.debug(sql)
         return sql
 

@@ -5,7 +5,7 @@ from faker import Faker
 from fastapi import APIRouter, Body, Query
 from fastapi_esql.utils.sqlizer import RawSQL
 from pydantic import BaseModel, Field
-from tortoise.expressions import Q
+from tortoise.queryset import Q
 
 from examples.service.constants.enums import GenderEnum, LocaleEnum
 from examples.service.managers.demo.account import AccountMgr

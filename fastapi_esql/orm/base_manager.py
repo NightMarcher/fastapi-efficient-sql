@@ -1,13 +1,12 @@
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Union
 
-from tortoise.backends.base.client import BaseDBAsyncClient
-from tortoise.expressions import Q
-from tortoise.models import Model
+from tortoise import BaseDBAsyncClient, Model
+from tortoise.queryset import Q
 
 from .base_app import AppMetaclass
-from ..utils.sqlizer import SQLizer
 from ..utils.cursor_handler import CursorHandler
+from ..utils.sqlizer import SQLizer
 
 logger = getLogger(__name__)
 

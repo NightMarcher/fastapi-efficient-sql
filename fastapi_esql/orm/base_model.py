@@ -1,5 +1,4 @@
-from tortoise import fields
-from tortoise.models import Model
+from tortoise import Model, fields
 
 
 class BaseModel(Model):

@@ -1,7 +1,7 @@
 from logging import Logger
 from typing import Any, Dict, List, Optional
 
-from tortoise.backends.base.client import BaseDBAsyncClient
+from tortoise import BaseDBAsyncClient
 
 
 class CursorHandler:

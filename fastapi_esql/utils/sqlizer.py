@@ -2,8 +2,8 @@ from logging import getLogger
 from json import dumps
 from typing import Any, Dict, List, Optional, Union
 
-from tortoise.expressions import Q
-from tortoise.models import Model
+from tortoise import Model
+from tortoise.queryset import Q
 from tortoise.query_utils import QueryModifier
 
 from ..const.error import QsParsingError, WrongParamsError

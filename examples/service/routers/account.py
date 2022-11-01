@@ -56,7 +56,7 @@ async def query_group_by_locale_view(
         fields=[
             "locale", "gender", "COUNT(1) cnt"
         ],
-        wheres="id BETWEEN 1 AND 12",
+        wheres=Q(id__range=[1, 12]),
         groups=["locale", "gender"],
         having="cnt > 0",
         orders=["locale", "-gender"],
@@ -104,7 +104,7 @@ async def query_last_login_view(
             "extend ->> '$.last_login.start_datetime' start_datetime",
             "CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec"
         ],
-        wheres=f"id IN ({', '.join(map(str, aids))}) AND gender = 1",
+        wheres=f"id IN ({','.join(map(str, aids))}) AND gender=1",
         # wheres=Q(Q(id__in=aids), Q(gender=1), join_type="AND"),
         # wheres={"id__in": aids, "gender": 1},
         # wheres=[Q(id__in=aids), Q(gender=1)],
@@ -127,7 +127,7 @@ async def update_last_login_view(
             },
             "$.uuid": faker.uuid4(),
         },
-        wheres=f"id = {aid}",
+        wheres=Q(id=aid),
     )
     return {"row_cnt": row_cnt}
 
@@ -158,7 +158,7 @@ async def bulk_clone_view(
     aids: List[int] = Body(..., embed=True),
 ):
     ok = await AccountMgr.insert_into_select(
-        wheres=f"id IN ({', '.join(map(str, aids))})",
+        wheres=Q(id__in=aids),
         remain_fields=["gender", "locale"],
         assign_field_dict={
             "active": False,

@@ -51,15 +51,15 @@ class SQLizer:
         return modifier.where_criterion.get_sql(quote_char="`")
 
     @classmethod
-    def resolve_orders(cls, orderings: List[str]) -> str:
-        orders = []
-        for o in orderings:
+    def resolve_orders(cls, orders: List[str]) -> str:
+        orders_ = []
+        for o in orders:
             if o.startswith("-"):
                 order = "DESC"
             else:
                 order = "ASC"
-            orders.append(f"{o.strip('-')} {order}")
-        return ", ".join(orders)
+            orders_.append(f"{o.strip('-')} {order}")
+        return ", ".join(orders_)
 
     @classmethod
     def _sqlize_value(cls, value, to_json=False) -> str:
@@ -234,8 +234,8 @@ class SQLizer:
         if not all([table, dicts, join_fields, update_fields]):
             raise WrongParamsError("Please check your params")
 
-        joins = [f"{table}.{jf} = tmp.{jf}" for jf in join_fields]
-        updates = [f"{table}.{uf} = tmp.{uf}" for uf in update_fields]
+        joins = [f"{table}.{jf}=tmp.{jf}" for jf in join_fields]
+        updates = [f"{table}.{uf}=tmp.{uf}" for uf in update_fields]
 
         sql = f"""
     UPDATE {table}

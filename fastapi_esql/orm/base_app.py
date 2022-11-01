@@ -1,7 +1,5 @@
 from abc import ABCMeta
 
-from .base_model import BaseModel
-
 
 class AppMetaclass(ABCMeta):
 
@@ -25,6 +23,7 @@ class AppMetaclass(ABCMeta):
 
     @property
     def table(self):
-        if self.model is BaseModel:
+        db_table = self.model._meta.db_table
+        if not db_table:
             raise NotImplementedError(f"Class attribute `model` was not defined by {self.__name__}!")
-        return self.model._meta.db_table
+        return db_table

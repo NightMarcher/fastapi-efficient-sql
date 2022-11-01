@@ -38,7 +38,7 @@ await AccountMgr.select_custom_fields(
         "extend ->> '$.last_login.start_datetime' start_datetime",
         "CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec"
     ],
-    wheres=f"id IN ({', '.join(map(str, aids))}) AND gender = 1",  # These 4 ways of `wheres` can work equally
+    wheres=f"id IN ({','.join(map(str, aids))}) AND gender=1",  # These 4 types of `wheres` are equal
     # wheres=Q(Q(id__in=aids), Q(gender=1), join_type="AND"),
     # wheres={"id__in": aids, "gender": 1},
     # wheres=[Q(id__in=aids), Q(gender=1)],
@@ -49,7 +49,7 @@ Generate sql and execute
     SELECT
         id, extend ->> '$.last_login.ipv4' ipv4, extend ->> '$.last_login.start_datetime' start_datetime, CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec
     FROM account
-    WHERE `id` IN (1,2,3) AND `gender`=1
+    WHERE id IN (1,2,3) AND gender=1
 ```
 
 **complex example**
@@ -58,7 +58,7 @@ await AccountMgr.select_custom_fields(
     fields=[
         "locale", "gender", "COUNT(1) cnt"
     ],
-    wheres="id BETWEEN 1 AND 12",
+    wheres=Q(id__range=[1, 12]),
     groups=["locale", "gender"],
     having="cnt > 0",
     orders=["locale", "-gender"],
@@ -70,7 +70,7 @@ Generate sql and execute
     SELECT
         locale, gender, COUNT(1) cnt
     FROM account
-    WHERE id BETWEEN 1 AND 12
+    WHERE `id` BETWEEN 1 AND 12
     GROUP BY locale, gender
     HAVING cnt > 0
     ORDER BY locale ASC, gender DESC
@@ -89,14 +89,14 @@ await AccountMgr.upsert_json_field(
         },
         "$.uuid": "fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f",
     },
-    wheres=f"id = 8",
+    wheres=Q(id=8),
 )
 ```
 Generate sql and execute
 ```sql
     UPDATE account
     SET extend = JSON_SET(COALESCE(extend, '{}'), '$.last_login', CAST('{"ipv4": "209.182.101.161", "start_datetime": "2022-10-16 11:11:05", "online_sec": 4209}' AS JSON), '$.uuid', 'fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f')
-    WHERE id = 8
+    WHERE `id`=8
 ```
 
 ### **upsert_on_duplicated**
@@ -124,7 +124,7 @@ Generate sql and execute
 ### **insert_into_select**
 ```python
 await AccountMgr.insert_into_select(
-    wheres=f"id IN (4, 5, 6)",
+    wheres=Q(id__in=[4, 5, 6]),
     remain_fields=["gender", "locale"],
     assign_field_dict={
         "active": False,
@@ -139,7 +139,7 @@ Generate sql and execute
         (gender, locale, active, name, extend)
     SELECT gender, locale, False active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
     FROM account
-    WHERE id IN (4, 5, 6)
+    WHERE `id` IN (4,5,6)
 ```
 
 ### **bulk_update_with_fly_table**
@@ -161,6 +161,6 @@ Generate sql and execute
             VALUES
                 ROW(7, False, 1), ROW(15, True, 0)
         ) AS fly_table (id, active, gender)
-    ) tmp ON account.id = tmp.id
-    SET account.active = tmp.active, account.gender = tmp.gender
+    ) tmp ON account.id=tmp.id
+    SET account.active=tmp.active, account.gender=tmp.gender
 ```

@@ -20,7 +20,7 @@ class CursorHandler:
             return None
 
     @classmethod
-    async def calc_row_cnt(
+    async def sum_row_cnt(
         cls,
         sql: str,
         conn: BaseDBAsyncClient,

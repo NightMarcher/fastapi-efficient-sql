@@ -155,7 +155,7 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "{{local}}:8000/api/account/last_login/update?account_id=8",
+					"raw": "{{local}}:8000/api/account/last_login/update?aid=8",
 					"host": [
 						"{{local}}"
 					],
@@ -168,7 +168,7 @@
 					],
 					"query": [
 						{
-							"key": "account_id",
+							"key": "aid",
 							"value": "8"
 						}
 					]
@@ -203,7 +203,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"account_ids\": [4, 5, 6]\n}",
+					"raw": "{\n    \"aids\": [4, 5, 6]\n}",
 					"options": {
 						"raw": {
 							"language": "json"

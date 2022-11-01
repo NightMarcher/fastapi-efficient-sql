@@ -17,7 +17,7 @@ __all__ = [
     "CursorHandler",
     "RawSQL",
     "SQLizer",
-    "QsParsingError"
+    "QsParsingError",
     "WrongParamsError",
     "timing",
 ]

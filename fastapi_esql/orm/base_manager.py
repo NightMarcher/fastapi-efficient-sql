@@ -6,7 +6,6 @@ from tortoise.expressions import Q
 from tortoise.models import Model
 
 from .base_app import AppMetaclass
-from .base_model import BaseModel
 from ..utils.sqlizer import SQLizer
 from ..utils.cursor_handler import CursorHandler
 
@@ -15,7 +14,7 @@ logger = getLogger(__name__)
 
 class BaseManager(metaclass=AppMetaclass):
 
-    model = BaseModel
+    model = Model
 
     @classmethod
     async def get_by_pk(
@@ -98,7 +97,7 @@ class BaseManager(metaclass=AppMetaclass):
             wheres,
             cls.model,
         )
-        return await CursorHandler.calc_row_cnt(sql, cls.rw_conn, logger)
+        return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)
 
     @classmethod
     async def upsert_on_duplicated(
@@ -113,7 +112,7 @@ class BaseManager(metaclass=AppMetaclass):
             insert_fields,
             upsert_fields,
         )
-        return await CursorHandler.calc_row_cnt(sql, cls.rw_conn, logger)
+        return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)
 
     @classmethod
     async def insert_into_select(
@@ -144,4 +143,4 @@ class BaseManager(metaclass=AppMetaclass):
             join_fields,
             update_fields,
         )
-        return await CursorHandler.calc_row_cnt(sql, cls.rw_conn, logger)
+        return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)

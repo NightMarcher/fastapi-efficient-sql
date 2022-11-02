@@ -16,7 +16,7 @@ class CursorHandler:
         try:
             return await conn.execute_query_dict(sql)
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{e} SQL=>{sql}")
             return None
 
     @classmethod
@@ -30,7 +30,7 @@ class CursorHandler:
             row_cnt, _ = await conn.execute_query(sql)
             return row_cnt
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{e} SQL=>{sql}")
             return None
 
     @classmethod
@@ -44,5 +44,5 @@ class CursorHandler:
             await conn.execute_script(sql)
             return True
         except Exception as e:
-            logger.exception(e)
+            logger.exception(f"{e} SQL=>{sql}")
             return False

@@ -131,11 +131,12 @@ await AccountMgr.insert_into_select(
         "name": RawSQL("CONCAT(LEFT(name, 26), ' [NEW]')"),
         "extend": {},
     },
+    to_table="account_bak",
 )
 ```
 Generate sql and execute
 ```sql
-    INSERT INTO account
+    INSERT INTO account_bak
         (gender, locale, active, name, extend)
     SELECT gender, locale, False active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
     FROM account

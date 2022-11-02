@@ -119,12 +119,14 @@ class BaseManager(metaclass=AppMetaclass):
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
         remain_fields: List[str],
         assign_field_dict: Dict[str, Any],
+        to_table: Optional[str] = None,
     ):
         sql = SQLizer.insert_into_select(
             cls.table,
             wheres,
             remain_fields,
             assign_field_dict,
+            to_table,
             cls.model,
         )
         return await CursorHandler.exec_if_ok(sql, cls.rw_conn, logger)

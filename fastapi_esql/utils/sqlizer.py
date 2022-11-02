@@ -159,7 +159,6 @@ class SQLizer:
             f"({', '.join(cls._sqlize_value(d.get(f)) for f in insert_fields)})"
             for d in dicts
         ]
-        # logger.debug(values)
         new_table = f"`new_{table}`"
         upserts = [f"{field}={new_table}.{field}" for field in upsert_fields]
 
@@ -180,6 +179,7 @@ class SQLizer:
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
         remain_fields: List[str],
         assign_field_dict: Dict[str, Any],
+        to_table: Optional[str] = None,
         model: Optional[Model] = None,
     ) -> Optional[str]:
         if not all([table, wheres] or not any([remain_fields, assign_field_dict])):
@@ -190,10 +190,9 @@ class SQLizer:
         for k, v in assign_field_dict.items():
             fields.append(k)
             assign_fields.append(f"{cls._sqlize_value(v)} {k}")
-        # logger.debug(assign_fields)
 
         sql = f"""
-    INSERT INTO {table}
+    INSERT INTO {to_table or table}
         ({", ".join(fields)})
     SELECT {", ".join(remain_fields + assign_fields)}
     FROM {table}

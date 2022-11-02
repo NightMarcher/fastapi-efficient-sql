@@ -83,7 +83,6 @@ async def bulk_init_view():
                 }
             }
         })
-    # logger.debug(dicts)
     ok = await AccountMgr.bulk_create_from_dicts(
         dicts,
         batch_size=5,
@@ -144,7 +143,6 @@ async def bulk_upsert_view():
             "locale": locale.value,
             "extend": {},
         })
-    logger.debug(dicts)
     row_cnt = await AccountMgr.upsert_on_duplicated(
         dicts,
         insert_fields=["id", "gender", "name", "locale", "extend"],
@@ -165,6 +163,7 @@ async def bulk_clone_view(
             "name": RawSQL("CONCAT(LEFT(name, 26), ' [NEW]')"),
             "extend": {},
         },
+        to_table="account_bak",
     )
     return {"ok": ok}
 

@@ -77,25 +77,31 @@ Generate sql and execute
     LIMIT 10
 ```
 
-### **upsert_json_field**
+### **update_json_field**
 ```python
-await AccountMgr.upsert_json_field(
+await AccountMgr.update_json_field(
     json_field="extend",
+    wheres=Q(id=8),
+    merge_dict={
+        "updated_at": "2022-10-30 21:34:15",
+        "info": {
+            "online_sec": 636,
+        }
+    },
     path_value_dict={
         "$.last_login": {
             "ipv4": "209.182.101.161",
-            "start_datetime": "2022-10-16 11:11:05",
-            "online_sec": 4209,
         },
         "$.uuid": "fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f",
     },
-    wheres=Q(id=8),
+    remove_paths=["$.deprecated"],
+    json_type=dict,
 )
 ```
 Generate sql and execute
 ```sql
-    UPDATE account
-    SET extend = JSON_SET(COALESCE(extend, '{}'), '$.last_login', CAST('{"ipv4": "209.182.101.161", "start_datetime": "2022-10-16 11:11:05", "online_sec": 4209}' AS JSON), '$.uuid', 'fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f')
+    UPDATE account SET extend =
+    JSON_MERGE_PATCH(JSON_SET(JSON_REMOVE(COALESCE(extend, '{}'), '$.deprecated'), '$.last_login',CAST('{"ipv4": "209.182.101.161"}' AS JSON), '$.uuid','fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f'), '{"updated_at": "2022-10-30 21:34:15", "info": {"online_sec": 636}}')
     WHERE `id`=8
 ```
 

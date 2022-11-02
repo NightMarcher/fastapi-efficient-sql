@@ -116,17 +116,23 @@ async def update_last_login_view(
     aid: int = Query(...),
 ):
     faker = Faker()
-    row_cnt = await AccountMgr.upsert_json_field(
+    row_cnt = await AccountMgr.update_json_field(
         json_field="extend",
+        wheres=Q(id=aid),
+        merge_dict={
+            "updated_at": str(faker.past_datetime()),
+            "info": {
+                "online_sec": faker.random_int(),
+            }
+        },
         path_value_dict={
             "$.last_login": {
                 "ipv4": faker.ipv4(),
-                "start_datetime": str(faker.past_datetime()),
-                "online_sec": faker.random_int(),
             },
             "$.uuid": faker.uuid4(),
         },
-        wheres=Q(id=aid),
+        remove_paths=["$.deprecated"],
+        json_type=dict,
     )
     return {"row_cnt": row_cnt}
 

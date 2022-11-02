@@ -121,25 +121,38 @@ class SQLizer:
         return sql
 
     @classmethod
-    def upsert_json_field(
+    def update_json_field(
         cls,
         table: str,
         json_field: str,
-        path_value_dict: Dict[str, Any],
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        merge_dict: Optional[Dict[str, Any]] = None,
+        path_value_dict: Optional[Dict[str, Any]] = None,
+        remove_paths: Optional[List[str]] = None,
+        json_type: type = dict,
         model: Optional[Model] = None,
     ) -> Optional[str]:
-        if not all([table, json_field, path_value_dict, wheres]):
+        if not all([table, json_field, wheres]):
+            raise WrongParamsError("Please check your params")
+        if not any([merge_dict, path_value_dict, remove_paths]):
             raise WrongParamsError("Please check your params")
 
-        params = []
-        for (path, value) in path_value_dict.items():
-            params.append(f"'{path}'")
-            params.append(cls._sqlize_value(value, to_json=True))
+        json_obj = f"COALESCE({json_field}, '{json_type()}')"
+        if remove_paths:
+            rps = ", ".join(f"'{p}'" for p in remove_paths)
+            json_obj = f"JSON_REMOVE({json_obj}, {rps})"
+        if path_value_dict:
+            pvs = [
+                f"'{path}',{cls._sqlize_value(value, to_json=True)}"
+                for (path, value) in path_value_dict.items()
+            ]
+            json_obj = f"JSON_SET({json_obj}, {', '.join(pvs)})"
+        if merge_dict:
+            json_obj = f"JSON_MERGE_PATCH({json_obj}, {cls._sqlize_value(merge_dict)})"
 
         sql = f"""
-    UPDATE {table}
-    SET {json_field} = JSON_SET(COALESCE({json_field}, '{{}}'), {", ".join(params)})
+    UPDATE {table} SET {json_field} =
+    {json_obj}
     WHERE {cls.resolve_wheres(wheres, model)}"""
         logger.debug(sql)
         return sql

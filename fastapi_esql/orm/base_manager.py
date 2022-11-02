@@ -83,17 +83,23 @@ class BaseManager(metaclass=AppMetaclass):
         return await CursorHandler.fetch_dicts(sql, conn, logger)
 
     @classmethod
-    async def upsert_json_field(
+    async def update_json_field(
         cls,
         json_field: str,
-        path_value_dict: Dict[str, Any],
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        merge_dict: Optional[Dict[str, Any]] = None,
+        path_value_dict: Optional[Dict[str, Any]] = None,
+        remove_paths: Optional[List[str]] = None,
+        json_type: type = dict,
     ):
-        sql = SQLizer.upsert_json_field(
+        sql = SQLizer.update_json_field(
             cls.table,
             json_field,
-            path_value_dict,
             wheres,
+            merge_dict,
+            path_value_dict,
+            remove_paths,
+            json_type,
             cls.model,
         )
         return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)

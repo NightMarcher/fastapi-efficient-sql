@@ -153,6 +153,7 @@ async def bulk_upsert_view():
         dicts,
         insert_fields=["id", "gender", "name", "locale", "extend"],
         upsert_fields=["name", "locale"],
+        using_values=False,
     )
     return {"row_cnt": row_cnt}
 
@@ -187,5 +188,6 @@ async def bulk_update_view(
         [d.dict() for d in dicts],
         join_fields=["id"],
         update_fields=["active", "gender"],
+        using_values=True,
     )
     return {"row_cnt": row_cnt}

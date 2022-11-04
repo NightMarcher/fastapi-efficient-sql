@@ -110,12 +110,14 @@ class BaseManager(metaclass=AppMetaclass):
         dicts: List[Dict[str, Any]],
         insert_fields: List[str],
         upsert_fields: List[str],
+        using_values: bool = False,
     ):
         sql = SQLizer.upsert_on_duplicated(
             cls.table,
             dicts,
             insert_fields,
             upsert_fields,
+            using_values,
         )
         return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)
 
@@ -143,11 +145,13 @@ class BaseManager(metaclass=AppMetaclass):
         dicts: List[Dict[str, Any]],
         join_fields: List[str],
         update_fields: List[str],
+        using_values: bool = True,
     ):
         sql = SQLizer.bulk_update_with_fly_table(
             cls.table,
             dicts,
             join_fields,
             update_fields,
+            using_values,
         )
         return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)

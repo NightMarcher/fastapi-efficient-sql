@@ -115,6 +115,7 @@ await AccountMgr.upsert_on_duplicated(
     ],
     insert_fields=["id", "gender", "name", "locale", "extend"],
     upsert_fields=["name", "locale"],
+    using_values=False,
 )
 ```
 Generate sql and execute
@@ -123,8 +124,7 @@ Generate sql and execute
         (id, gender, name, locale, extend)
     VALUES
         (7, 1, '斉藤 修平', 'ja_JP', '{}'), (8, 1, 'Ojas Salvi', 'en_IN', '{}'), (9, 1, '羊淑兰', 'zh_CN', '{}')
-    AS `new_account`
-    ON DUPLICATE KEY UPDATE name=`new_account`.name, locale=`new_account`.locale
+    AS `new_account` ON DUPLICATE KEY UPDATE name=`new_account`.name, locale=`new_account`.locale
 ```
 
 ### **insert_into_select**
@@ -158,6 +158,7 @@ await AccountMgr.bulk_update_with_fly_table(
     ],
     join_fields=["id"],
     update_fields=["active", "gender"],
+    using_values=True,
 )
 ```
 Generate sql and execute
@@ -166,7 +167,7 @@ Generate sql and execute
     JOIN (
         SELECT * FROM (
             VALUES
-                ROW(7, False, 1), ROW(15, True, 0)
+            ROW(7, False, 1), ROW(15, True, 0)
         ) AS fly_table (id, active, gender)
     ) tmp ON account.id=tmp.id
     SET account.active=tmp.active, account.gender=tmp.gender

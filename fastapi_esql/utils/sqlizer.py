@@ -164,6 +164,7 @@ class SQLizer:
         dicts: List[Dict[str, Any]],
         insert_fields: List[str],
         upsert_fields: List[str],
+        using_values: bool = False,
     ) -> Optional[str]:
         if not all([table, dicts, insert_fields, upsert_fields]):
             raise WrongParamsError("Please check your params")
@@ -172,16 +173,23 @@ class SQLizer:
             f"({', '.join(cls._sqlize_value(d.get(f)) for f in insert_fields)})"
             for d in dicts
         ]
-        new_table = f"`new_{table}`"
-        upserts = [f"{field}={new_table}.{field}" for field in upsert_fields]
+        # NOTE Beginning with MySQL 8.0.19, it is possible to use an alias for the row
+        # https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html
+        if using_values:
+            upserts = [f"{field}=VALUES({field})" for field in upsert_fields]
+            on_duplicated = f"ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
+        else:
+            new_table = f"`new_{table}`"
+            upserts = [f"{field}={new_table}.{field}" for field in upsert_fields]
+            on_duplicated = f"AS {new_table} ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
 
         sql = f"""
     INSERT INTO {table}
         ({", ".join(insert_fields)})
     VALUES
         {", ".join(values)}
-    AS {new_table}
-    ON DUPLICATE KEY UPDATE {", ".join(upserts)}"""
+    {on_duplicated}
+    """
         logger.debug(sql)
         return sql
 
@@ -218,20 +226,30 @@ class SQLizer:
         cls,
         dicts: List[Dict[str, Any]],
         fields: List[str],
+        using_values: bool = True,
     ) -> Optional[str]:
         if not all([dicts, fields]):
             raise WrongParamsError("Please check your params")
 
-        rows = [
-            f"ROW({', '.join(cls._sqlize_value(d.get(f)) for f in fields)})"
-            for d in dicts
-        ]
+        if using_values:
+            rows = [
+                f"ROW({', '.join(cls._sqlize_value(d.get(f)) for f in fields)})"
+                for d in dicts
+            ]
+            values = "VALUES\n            " + ", ".join(rows)
+            table = f"fly_table ({', '.join(fields)})"
+        else:
+            rows = [
+                f"SELECT {', '.join(f'{cls._sqlize_value(d.get(f))} {f}' for f in fields)}"
+                for d in dicts
+            ]
+            values = " UNION ".join(rows)
+            table = "fly_table"
 
         sql = f"""
         SELECT * FROM (
-            VALUES
-                {", ".join(rows)}
-        ) AS fly_table ({", ".join(fields)})"""
+            {values}
+        ) AS {table}"""
         logger.debug(sql)
         return sql
 
@@ -242,6 +260,7 @@ class SQLizer:
         dicts: List[Dict[str, Any]],
         join_fields: List[str],
         update_fields: List[str],
+        using_values: bool = True,
     ) -> Optional[str]:
         if not all([table, dicts, join_fields, update_fields]):
             raise WrongParamsError("Please check your params")
@@ -251,7 +270,7 @@ class SQLizer:
 
         sql = f"""
     UPDATE {table}
-    JOIN ({SQLizer.build_fly_table(dicts, join_fields + update_fields)}
+    JOIN ({SQLizer.build_fly_table(dicts, join_fields + update_fields, using_values)}
     ) tmp ON {", ".join(joins)}
     SET {", ".join(updates)}"""
         logger.debug(sql)

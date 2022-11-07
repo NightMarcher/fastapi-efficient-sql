@@ -1,5 +1,7 @@
 # fastapi-efficient-sql
 
+Installed by `pip install fastapi-efficient-sql`
+
 ## Some preparations before using efficient sql
 ```python
 from fastapi_esql import AppMetaclass, BaseManager, BaseModel

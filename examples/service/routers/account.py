@@ -3,7 +3,7 @@ from typing import List
 
 from faker import Faker
 from fastapi import APIRouter, Body, Query
-from fastapi_esql.utils.sqlizer import RawSQL
+from fastapi_esql import RawSQL
 from pydantic import BaseModel, Field
 from tortoise.queryset import Q
 

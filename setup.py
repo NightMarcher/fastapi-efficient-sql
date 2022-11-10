@@ -28,11 +28,12 @@ setuptools.setup(
     version=fastapi_esql.__version__,
     author="BryanLee",
     author_email="bryanlee@126.com",
-    description="Generate bulk DML SQL and execute them based on `tortoise-orm` and mysql8.0+, and integrated with `fastapi`.",
+    description="Generate bulk DML SQL and execute them based on tortoise-orm and mysql8.0+, and integrated with fastapi.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/NightMarcher/fastapi-efficient-sql",
     packages=setuptools.find_packages(),
+    license="MIT",
     keywords=["sql", "fastapi", "tortoise-orm", "mysql8", "bulk-operation"],
     install_requires=read_requirements("requirements.txt"),
     classifiers=[

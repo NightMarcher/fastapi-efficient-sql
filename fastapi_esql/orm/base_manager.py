@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 
 class BaseManager(metaclass=AppMetaclass):
 
-    model = Model
+    model: Model = Model
 
     @classmethod
     async def get_by_pk(
@@ -21,7 +21,7 @@ class BaseManager(metaclass=AppMetaclass):
         pk: Any,
         conn: Optional[BaseDBAsyncClient] = None,
     ) -> Optional[Model]:
-        return await cls.model.get_or_none(pk=pk, using_db=conn)
+        return await cls.model.get_or_none(pk=pk).using_db(conn)
 
     @classmethod
     async def create_from_dict(cls, params: Dict[str, Any]) -> Optional[Model]:

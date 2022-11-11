@@ -29,7 +29,7 @@ async def create_view():
 async def update_view(
     aid: int = Query(...),
 ):
-    account = await AccountMgr.get_by_pk(aid)
+    account = await AccountMgr.get_by_pk(pk=aid, conn=AccountMgr.rw_conn)
     if not account:
         return {"found": False, "ok": False}
 

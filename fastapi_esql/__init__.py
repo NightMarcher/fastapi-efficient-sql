@@ -11,12 +11,13 @@ from .orm import (
 )
 from .utils import (
     CursorHandler,
+    Cases,
     RawSQL,
     SQLizer,
     timing,
 )
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 __all__ = [
     "QsParsingError",
@@ -25,6 +26,7 @@ __all__ = [
     "BaseManager",
     "BaseModel",
     "CursorHandler",
+    "Cases",
     "RawSQL",
     "SQLizer",
     "timing",

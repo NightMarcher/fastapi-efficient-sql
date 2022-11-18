@@ -107,9 +107,9 @@ Generate sql and execute
     WHERE `id`=8
 ```
 
-### **upsert_on_duplicated**
+### **upsert_on_duplicate**
 ```python
-await AccountMgr.upsert_on_duplicated(
+await AccountMgr.upsert_on_duplicate(
     [
         {'id': 7, 'gender': 1, 'name': '斉藤 修平', 'locale': 'ja_JP', 'extend': {}},
         {'id': 8, 'gender': 1, 'name': 'Ojas Salvi', 'locale': 'en_IN', 'extend': {}},
@@ -133,8 +133,9 @@ Generate sql and execute
 ```python
 await AccountMgr.insert_into_select(
     wheres=Q(id__in=[4, 5, 6]),
-    remain_fields=["gender", "locale"],
+    remain_fields=["gender"],
     assign_field_dict={
+        "locale": Cases("id", {3: LocaleEnum.zh_CN, 4: LocaleEnum.en_US, 5: LocaleEnum.fr_FR}, default=""),
         "active": False,
         "name": RawSQL("CONCAT(LEFT(name, 26), ' [NEW]')"),
         "extend": {},
@@ -146,14 +147,14 @@ Generate sql and execute
 ```sql
     INSERT INTO account_bak
         (gender, locale, active, name, extend)
-    SELECT gender, locale, False active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
+    SELECT gender, CASE id WHEN 3 THEN 'zh_CN' WHEN 4 THEN 'en_US' WHEN 5 THEN 'fr_FR' ELSE '' END locale, False active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
     FROM account
     WHERE `id` IN (4,5,6)
 ```
 
-### **bulk_update_with_fly_table**
+### **bulk_update**
 ```python
-await AccountMgr.bulk_update_with_fly_table(
+await AccountMgr.bulk_update(
     [
         {'id': 7, 'active': False, 'gender': <GenderEnum.male: 1>},
         {'id': 15, 'active': True, 'gender': <GenderEnum.unknown: 0>}

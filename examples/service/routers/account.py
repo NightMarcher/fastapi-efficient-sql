@@ -3,7 +3,7 @@ from typing import List
 
 from faker import Faker
 from fastapi import APIRouter, Body, Query
-from fastapi_esql import RawSQL
+from fastapi_esql import Cases, RawSQL
 from pydantic import BaseModel, Field
 from tortoise.queryset import Q
 
@@ -149,7 +149,7 @@ async def bulk_upsert_view():
             "locale": locale.value,
             "extend": {},
         })
-    row_cnt = await AccountMgr.upsert_on_duplicated(
+    row_cnt = await AccountMgr.upsert_on_duplicate(
         dicts,
         insert_fields=["id", "gender", "name", "locale", "extend"],
         upsert_fields=["name", "locale"],
@@ -164,8 +164,9 @@ async def bulk_clone_view(
 ):
     ok = await AccountMgr.insert_into_select(
         wheres=Q(id__in=aids),
-        remain_fields=["gender", "locale"],
+        remain_fields=["gender"],
         assign_field_dict={
+            "locale": Cases("id", {3: LocaleEnum.zh_CN, 4: LocaleEnum.en_US, 5: LocaleEnum.fr_FR}, default=""),
             "active": False,
             "name": RawSQL("CONCAT(LEFT(name, 26), ' [NEW]')"),
             "extend": {},
@@ -184,7 +185,7 @@ class UpdateIn(BaseModel):
 async def bulk_update_view(
     dicts: List[UpdateIn] = Body(..., embed=True),
 ):
-    row_cnt = await AccountMgr.bulk_update_with_fly_table(
+    row_cnt = await AccountMgr.bulk_update(
         [d.dict() for d in dicts],
         join_fields=["id"],
         update_fields=["active", "gender"],

@@ -20,6 +20,27 @@ except ImportError:
             self.sql = sql
 
 
+class Cases:
+    """
+    Simple case statement, like:
+    'CASE `feild` WHEN ... THEN ... ELSE <default> END'.
+    If your statement is more complex, please use RawSQL directly.
+    """
+    def __init__(self, field: str, whens: dict, default=None):
+        self.field = field
+        self.whens = whens
+        self.default = default
+
+    @property
+    def sql(self):
+        whens = " ".join(
+            f"WHEN {k} THEN {SQLizer._sqlize_value(v)}"
+            for k, v in self.whens.items()
+        )
+        else_ = " ELSE " + SQLizer._sqlize_value(self.default) if self.default is not None else ""
+        return f"CASE {self.field} {whens}{else_} END"
+
+
 class SQLizer:
 
     @classmethod
@@ -68,7 +89,7 @@ class SQLizer:
         """
         if value is None:
             return "NULL"
-        elif isinstance(value, RawSQL):
+        elif isinstance(value, (Cases, RawSQL)):
             return value.sql
         elif isinstance(value, (int, float, bool)):
             return f"{value}"
@@ -158,7 +179,7 @@ class SQLizer:
         return sql
 
     @classmethod
-    def upsert_on_duplicated(
+    def upsert_on_duplicate(
         cls,
         table: str,
         dicts: List[Dict[str, Any]],
@@ -254,7 +275,7 @@ class SQLizer:
         return sql
 
     @classmethod
-    def bulk_update_with_fly_table(
+    def bulk_update(
         cls,
         table: str,
         dicts: List[Dict[str, Any]],

@@ -22,12 +22,11 @@ except ImportError:
 
 class Cases:
     """
-    Simple case statement, like
+    Simple case statement, like:
     'CASE `feild` WHEN ... THEN ... ELSE <default> END'.
-    If your statement is complex, please use RawSQL directly.
+    If your statement is more complex, please use RawSQL directly.
     """
     def __init__(self, field: str, whens: dict, default=None):
-        super().__init__()
         self.field = field
         self.whens = whens
         self.default = default

@@ -185,7 +185,7 @@ class UpdateIn(BaseModel):
 async def bulk_update_view(
     dicts: List[UpdateIn] = Body(..., embed=True),
 ):
-    row_cnt = await AccountMgr.bulk_update(
+    row_cnt = await AccountMgr.bulk_update_from_dicts(
         [d.dict() for d in dicts],
         join_fields=["id"],
         update_fields=["active", "gender"],

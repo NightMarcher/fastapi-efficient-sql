@@ -140,14 +140,14 @@ class BaseManager(metaclass=AppMetaclass):
         return await CursorHandler.exec_if_ok(sql, cls.rw_conn, logger)
 
     @classmethod
-    async def bulk_update(
+    async def bulk_update_from_dicts(
         cls,
         dicts: List[Dict[str, Any]],
         join_fields: List[str],
         update_fields: List[str],
         using_values: bool = True,
     ):
-        sql = SQLizer.bulk_update(
+        sql = SQLizer.bulk_update_from_dicts(
             cls.table,
             dicts,
             join_fields,

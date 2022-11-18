@@ -275,7 +275,7 @@ class SQLizer:
         return sql
 
     @classmethod
-    def bulk_update(
+    def bulk_update_from_dicts(
         cls,
         table: str,
         dicts: List[Dict[str, Any]],

@@ -152,9 +152,9 @@ Generate sql and execute
     WHERE `id` IN (4,5,6)
 ```
 
-### **bulk_update**
+### **bulk_update_from_dicts**
 ```python
-await AccountMgr.bulk_update(
+await AccountMgr.bulk_update_from_dicts(
     [
         {'id': 7, 'active': False, 'gender': <GenderEnum.male: 1>},
         {'id': 15, 'active': True, 'gender': <GenderEnum.unknown: 0>}

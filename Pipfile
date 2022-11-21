@@ -13,6 +13,7 @@ cryptography = "*"
 faker = "*"
 fastapi = "*"
 uvicorn = "*"
+tortoise-orm = "*"
 
 [requires]
 python_version = "3.7"

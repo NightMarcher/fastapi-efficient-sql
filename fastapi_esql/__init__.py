@@ -14,6 +14,7 @@ from .utils import (
     Cases,
     RawSQL,
     SQLizer,
+    Singleton,
     timing,
 )
 
@@ -29,6 +30,7 @@ __all__ = [
     "Cases",
     "RawSQL",
     "SQLizer",
+    "Singleton",
     "timing",
 ]
 

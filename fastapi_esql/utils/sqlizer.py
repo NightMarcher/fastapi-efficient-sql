@@ -9,7 +9,7 @@ from tortoise.query_utils import QueryModifier
 from ..const.error import QsParsingError, WrongParamsError
 
 logger = getLogger(__name__)
-# ensure the functionality of the RawSQL
+# To ensure the functionality of the RawSQL
 try:
     from tortoise.expressions import RawSQL
 except ImportError:
@@ -34,10 +34,10 @@ class Cases:
     @property
     def sql(self):
         whens = " ".join(
-            f"WHEN {k} THEN {SQLizer._sqlize_value(v)}"
+            f"WHEN {k} THEN {SQLizer.sqlize_value(v)}"
             for k, v in self.whens.items()
         )
-        else_ = " ELSE " + SQLizer._sqlize_value(self.default) if self.default is not None else ""
+        else_ = " ELSE " + SQLizer.sqlize_value(self.default) if self.default is not None else ""
         return f"CASE {self.field} {whens}{else_} END"
 
 
@@ -68,7 +68,7 @@ class SQLizer:
 
         modifier = QueryModifier()
         for q in qs:
-            # NOTE method `Q.resolve` changed since V0.18.0
+            # NOTE Method `Q.resolve` changed since version 0.18.0
             # https://github.com/tortoise/tortoise-orm/commit/37178e175bc12bc4767b93142dab0209f9240c55
             if __version__ >= "0.18.0":
                 modifier &= q.resolve(model, model._meta.basetable)
@@ -88,7 +88,7 @@ class SQLizer:
         return ", ".join(orders_)
 
     @classmethod
-    def _sqlize_value(cls, value, to_json=False) -> str:
+    def sqlize_value(cls, value, to_json=False) -> str:
         """
         Works like aiomysql.connection.Connection.escape
         """
@@ -169,12 +169,12 @@ class SQLizer:
             json_obj = f"JSON_REMOVE({json_obj}, {rps})"
         if path_value_dict:
             pvs = [
-                f"'{path}',{cls._sqlize_value(value, to_json=True)}"
+                f"'{path}',{cls.sqlize_value(value, to_json=True)}"
                 for (path, value) in path_value_dict.items()
             ]
             json_obj = f"JSON_SET({json_obj}, {', '.join(pvs)})"
         if merge_dict:
-            json_obj = f"JSON_MERGE_PATCH({json_obj}, {cls._sqlize_value(merge_dict)})"
+            json_obj = f"JSON_MERGE_PATCH({json_obj}, {cls.sqlize_value(merge_dict)})"
 
         sql = f"""
     UPDATE {table} SET {json_field} =
@@ -196,7 +196,7 @@ class SQLizer:
             raise WrongParamsError("Please check your params")
 
         values = [
-            f"({', '.join(cls._sqlize_value(d.get(f)) for f in insert_fields)})"
+            f"({', '.join(cls.sqlize_value(d.get(f)) for f in insert_fields)})"
             for d in dicts
         ]
         # NOTE Beginning with MySQL 8.0.19, it is possible to use an alias for the row
@@ -236,7 +236,7 @@ class SQLizer:
         assign_fields = []
         for k, v in assign_field_dict.items():
             fields.append(k)
-            assign_fields.append(f"{cls._sqlize_value(v)} {k}")
+            assign_fields.append(f"{cls.sqlize_value(v)} {k}")
 
         sql = f"""
     INSERT INTO {to_table or table}
@@ -259,14 +259,14 @@ class SQLizer:
 
         if using_values:
             rows = [
-                f"ROW({', '.join(cls._sqlize_value(d.get(f)) for f in fields)})"
+                f"ROW({', '.join(cls.sqlize_value(d.get(f)) for f in fields)})"
                 for d in dicts
             ]
             values = "VALUES\n            " + ", ".join(rows)
             table = f"fly_table ({', '.join(fields)})"
         else:
             rows = [
-                f"SELECT {', '.join(f'{cls._sqlize_value(d.get(f))} {f}' for f in fields)}"
+                f"SELECT {', '.join(f'{cls.sqlize_value(d.get(f))} {f}' for f in fields)}"
                 for d in dicts
             ]
             values = " UNION ".join(rows)

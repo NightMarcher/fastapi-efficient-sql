@@ -134,7 +134,7 @@ class SQLizer:
 
         sql = """
     SELECT
-        {}
+      {}
     FROM {}
     WHERE {}
 {}""".format(
@@ -196,26 +196,31 @@ class SQLizer:
             raise WrongParamsError("Please check your params")
 
         values = [
-            f"({', '.join(cls.sqlize_value(d.get(f)) for f in insert_fields)})"
+            f"      ({', '.join(cls.sqlize_value(d.get(f)) for f in insert_fields)})"
             for d in dicts
         ]
         # NOTE Beginning with MySQL 8.0.19, it is possible to use an alias for the row
         # https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html
         if using_values:
             upserts = [f"{field}=VALUES({field})" for field in upsert_fields]
-            on_duplicated = f"ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
+            on_duplicate = f"ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
         else:
             new_table = f"`new_{table}`"
             upserts = [f"{field}={new_table}.{field}" for field in upsert_fields]
-            on_duplicated = f"AS {new_table} ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
+            on_duplicate = f"AS {new_table} ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
 
-        sql = f"""
-    INSERT INTO {table}
-        ({", ".join(insert_fields)})
+        sql = """
+    INSERT INTO {}
+      ({})
     VALUES
-        {", ".join(values)}
-    {on_duplicated}
-    """
+{}
+    {}
+    """.format(
+        table,
+        ", ".join(insert_fields),
+        ",\n".join(values),
+        on_duplicate,
+    )
         logger.debug(sql)
         return sql
 
@@ -240,7 +245,7 @@ class SQLizer:
 
         sql = f"""
     INSERT INTO {to_table or table}
-        ({", ".join(fields)})
+      ({", ".join(fields)})
     SELECT {", ".join(remain_fields + assign_fields)}
     FROM {table}
     WHERE {cls.resolve_wheres(wheres, model)}"""
@@ -259,22 +264,22 @@ class SQLizer:
 
         if using_values:
             rows = [
-                f"ROW({', '.join(cls.sqlize_value(d.get(f)) for f in fields)})"
+                f"          ROW({', '.join(cls.sqlize_value(d.get(f)) for f in fields)})"
                 for d in dicts
             ]
-            values = "VALUES\n            " + ", ".join(rows)
+            values = "VALUES\n" + ",\n".join(rows)
             table = f"fly_table ({', '.join(fields)})"
         else:
             rows = [
                 f"SELECT {', '.join(f'{cls.sqlize_value(d.get(f))} {f}' for f in fields)}"
                 for d in dicts
             ]
-            values = " UNION ".join(rows)
+            values = "      " + "\n          UNION ".join(rows)
             table = "fly_table"
 
         sql = f"""
         SELECT * FROM (
-            {values}
+          {values}
         ) AS {table}"""
         logger.debug(sql)
         return sql

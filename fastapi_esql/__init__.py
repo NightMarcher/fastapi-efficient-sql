@@ -1,5 +1,7 @@
 from logging.config import dictConfig
 
+from tortoise.queryset import Q
+
 from .const import (
     QsParsingError,
     WrongParamsError,
@@ -18,7 +20,7 @@ from .utils import (
     timing,
 )
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 __all__ = [
     "QsParsingError",
@@ -28,6 +30,7 @@ __all__ = [
     "BaseModel",
     "CursorHandler",
     "Cases",
+    "Q",
     "RawSQL",
     "SQLizer",
     "Singleton",

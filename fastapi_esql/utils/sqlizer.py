@@ -274,7 +274,7 @@ class SQLizer:
                 f"SELECT {', '.join(f'{cls.sqlize_value(d.get(f))} {f}' for f in fields)}"
                 for d in dicts
             ]
-            values = "      " + "\n          UNION ".join(rows)
+            values = "\n            UNION\n          ".join(rows)
             table = "fly_table"
 
         sql = f"""

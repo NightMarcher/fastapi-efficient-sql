@@ -3,6 +3,19 @@ from abc import ABCMeta
 
 class AppMetaclass(ABCMeta):
 
+    def __new__(cls, name, bases, attrs):
+        if name != "BaseManager":
+            model = attrs.get("model")
+            if not model:
+                raise NotImplementedError(f"Class attribute `model` was not defined by {name}!")
+
+            table = getattr(model.Meta, "table", None)
+            if not table:
+                raise NotImplementedError(f"Meta attribute `table` was not defined by model {model.__name__}!")
+
+            attrs["table"] = model.Meta.table
+        return super().__new__(cls, name, bases, attrs)
+
     @property
     def ro_conn(self):
         """
@@ -20,10 +33,3 @@ class AppMetaclass(ABCMeta):
         if not getattr(self, "get_rw_conn", None):
             raise NotImplementedError(f"Method `get_rw_conn()` was not implemented by {self.__class__.__name__}!")
         return self.get_rw_conn()
-
-    @property
-    def table(self):
-        db_table = self.model._meta.db_table
-        if not db_table:
-            raise NotImplementedError(f"Class attribute `model` was not defined by {self.__name__}!")
-        return db_table

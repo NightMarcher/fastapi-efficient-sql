@@ -1,6 +1,10 @@
 # fastapi-efficient-sql
 
-Installed by `pip install fastapi-efficient-sql`
+Installed as package by `pip install fastapi-efficient-sql`
+
+Install developing requirements by `pipenv install --skip-lock --dev`
+
+Run unittest by `pytest -sv`
 
 ## Some preparations before using efficient sql
 ```python

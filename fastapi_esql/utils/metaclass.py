@@ -3,10 +3,7 @@ from abc import ABCMeta
 
 class Singleton(ABCMeta):
     """
-    Singleton metaclass, using by:
-
-    >>> class Parent(BaseClass, metaclass=Singleton):pass
-    >>> class Child(Parent):pass
+    Singleton metaclass
     """
     def __init__(self, *args, **kwargs):
         self.__instance = None

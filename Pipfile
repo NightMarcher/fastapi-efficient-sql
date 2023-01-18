@@ -1,5 +1,5 @@
 [[source]]
-url = "https://pypi.org/simple"
+url = "https://pypi.tuna.tsinghua.edu.cn"
 verify_ssl = true
 name = "pypi"
 
@@ -12,8 +12,9 @@ autopep8 = "*"
 cryptography = "*"
 faker = "*"
 fastapi = "*"
-uvicorn = "*"
+pytest = "*"
 tortoise-orm = "*"
+uvicorn = "*"
 
 [requires]
 python_version = "3.7"

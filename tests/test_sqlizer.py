@@ -1,7 +1,13 @@
 from datetime import datetime
 from unittest import TestCase
 
-from fastapi_esql import Cases, RawSQL, SQLizer
+from fastapi_esql import (
+    Cases, RawSQL, SQLizer,
+    Q, QsParsingError, WrongParamsError,
+)
+
+from . import init_test_orm
+from examples.service.models.demo import Account
 
 
 class TestRawSQL(TestCase):
@@ -26,6 +32,31 @@ class TestCases(TestCase):
 
 
 class TestSQLizer(TestCase):
+
+    def test_resolve_wheres(self):
+        with self.assertRaises(WrongParamsError):
+            SQLizer.resolve_wheres(object())
+
+        aids = (1, 2, 3)
+        assert SQLizer.resolve_wheres(
+            f"id IN ({','.join(map(str, aids))}) AND gender=1"
+        ) == "id IN (1,2,3) AND gender=1"
+        init_test_orm()
+        assert SQLizer.resolve_wheres(
+            Q(Q(id__in=aids), Q(gender=1), join_type="AND"), Account
+        ) == "`id` IN (1,2,3) AND `gender`=1"
+        assert SQLizer.resolve_wheres(
+            {"id__in": aids, "gender": 1}, Account
+        ) == "`id` IN (1,2,3) AND `gender`=1"
+        assert SQLizer.resolve_wheres(
+            [Q(id__in=aids), Q(gender=1)], Account
+        ) == "`id` IN (1,2,3) AND `gender`=1"
+
+        with self.assertRaises(WrongParamsError):
+            SQLizer.resolve_wheres(set())
+
+        with self.assertRaises(QsParsingError):
+            SQLizer.resolve_wheres({}, Account)
 
     def test_resolve_orders(self):
         orders = SQLizer.resolve_orders(["-created_at", "name"])

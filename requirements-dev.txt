@@ -1,0 +1,8 @@
+aiomysql
+autopep8
+cryptography
+faker
+fastapi
+pytest
+tortoise-orm
+uvicorn

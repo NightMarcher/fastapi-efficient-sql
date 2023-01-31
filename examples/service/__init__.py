@@ -86,7 +86,7 @@ def init_db(app: FastAPI):
         },
         "apps": {
             "demo": {
-                "models": ["examples.service.models.demo.__init__"],
+                "models": ["examples.service.models.demo"],
                 "default_connection": "demo_ro"
             }
         }

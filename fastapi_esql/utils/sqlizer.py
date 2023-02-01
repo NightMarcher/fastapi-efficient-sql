@@ -180,7 +180,8 @@ class SQLizer:
         sql = f"""
     UPDATE {table} SET {json_field} =
     {json_obj}
-    WHERE {cls.resolve_wheres(wheres, model)}"""
+    WHERE {cls.resolve_wheres(wheres, model)}
+"""
         logger.debug(sql)
         return sql
 
@@ -216,7 +217,7 @@ class SQLizer:
     VALUES
 {}
     {}
-    """.format(
+""".format(
         table,
         ", ".join(insert_fields),
         ",\n".join(values),
@@ -249,7 +250,8 @@ class SQLizer:
       ({", ".join(fields)})
     SELECT {", ".join(remain_fields + assign_fields)}
     FROM {table}
-    WHERE {cls.resolve_wheres(wheres, model)}"""
+    WHERE {cls.resolve_wheres(wheres, model)}
+"""
         logger.debug(sql)
         return sql
 
@@ -304,6 +306,7 @@ class SQLizer:
     UPDATE {table}
     JOIN ({SQLizer.build_fly_table(dicts, join_fields + update_fields, using_values)}
     ) tmp ON {", ".join(joins)}
-    SET {", ".join(updates)}"""
+    SET {", ".join(updates)}
+"""
         logger.debug(sql)
         return sql

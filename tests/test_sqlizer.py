@@ -6,7 +6,6 @@ from fastapi_esql import (
     Q, QsParsingError, WrongParamsError,
 )
 
-from . import init_test_orm
 from examples.service.models.demo import Account
 
 
@@ -33,6 +32,9 @@ class TestCases(TestCase):
 
 class TestSQLizer(TestCase):
 
+    model = Account
+    table = Account.Meta.table
+
     def test_resolve_wheres(self):
         with self.assertRaises(WrongParamsError):
             SQLizer.resolve_wheres(object())
@@ -41,22 +43,21 @@ class TestSQLizer(TestCase):
         assert SQLizer.resolve_wheres(
             f"id IN ({','.join(map(str, aids))}) AND gender=1"
         ) == "id IN (1,2,3) AND gender=1"
-        init_test_orm()
         assert SQLizer.resolve_wheres(
-            Q(Q(id__in=aids), Q(gender=1), join_type="AND"), Account
+            Q(Q(id__in=aids), Q(gender=1), join_type="AND"), self.model
         ) == "`id` IN (1,2,3) AND `gender`=1"
         assert SQLizer.resolve_wheres(
-            {"id__in": aids, "gender": 1}, Account
+            {"id__in": aids, "gender": 1}, self.model
         ) == "`id` IN (1,2,3) AND `gender`=1"
         assert SQLizer.resolve_wheres(
-            [Q(id__in=aids), Q(gender=1)], Account
+            [Q(id__in=aids), Q(gender=1)], self.model
         ) == "`id` IN (1,2,3) AND `gender`=1"
 
         with self.assertRaises(WrongParamsError):
             SQLizer.resolve_wheres(set())
 
         with self.assertRaises(QsParsingError):
-            SQLizer.resolve_wheres({}, Account)
+            SQLizer.resolve_wheres({}, self.model)
 
     def test_resolve_orders(self):
         orders = SQLizer.resolve_orders(["-created_at", "name"])
@@ -82,3 +83,61 @@ class TestSQLizer(TestCase):
         assert SQLizer.sqlize_value(("a", "b", "c")) == """'["a", "b", "c"]'"""
 
         assert SQLizer.sqlize_value(datetime(2023, 1, 1, 12, 30)) == "'2023-01-01 12:30:00'"
+
+    def test_select_custom_fields(self):
+        aids = [1, 2, 3]
+        basic_sql = SQLizer.select_custom_fields(
+            self.table,
+            fields=[
+                "id", "extend ->> '$.last_login.ipv4' ipv4",
+                "extend ->> '$.last_login.start_datetime' start_datetime",
+                "CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec"
+            ],
+            wheres=f"id IN ({','.join(map(str, aids))}) AND gender=1",
+            model=self.model,
+        )
+        assert basic_sql == """
+    SELECT
+      id, extend ->> '$.last_login.ipv4' ipv4, extend ->> '$.last_login.start_datetime' start_datetime, CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec
+    FROM account
+    WHERE id IN (1,2,3) AND gender=1
+"""
+
+        complex_sql = SQLizer.select_custom_fields(
+            self.table,
+            fields=[
+                "locale", "gender", "COUNT(1) cnt"
+            ],
+            wheres=Q(id__range=[1, 12]),
+            groups=["locale", "gender"],
+            having="cnt > 0",
+            orders=["locale", "-gender"],
+            limit=10,
+            model=self.model,
+        )
+        assert complex_sql == """
+    SELECT
+      locale, gender, COUNT(1) cnt
+    FROM account
+    WHERE `id` BETWEEN 1 AND 12
+    GROUP BY locale, gender
+    HAVING cnt > 0
+    ORDER BY locale ASC, gender DESC
+    LIMIT 10"""
+
+        paging_sql = SQLizer.select_custom_fields(
+            self.table,
+            fields=[
+                "locale", "gender"
+            ],
+            wheres=Q(id__range=[1, 12]),
+            offset=100,
+            limit=5,
+            model=self.model,
+        )
+        assert paging_sql == """
+    SELECT
+      locale, gender
+    FROM account
+    WHERE `id` BETWEEN 1 AND 12
+    LIMIT 100, 5"""

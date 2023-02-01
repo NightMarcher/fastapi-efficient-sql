@@ -68,6 +68,7 @@ await AccountMgr.select_custom_fields(
     groups=["locale", "gender"],
     having="cnt > 0",
     orders=["locale", "-gender"],
+    offset=0,
     limit=10,
 )
 ```
@@ -80,7 +81,7 @@ Generate sql and execute
     GROUP BY locale, gender
     HAVING cnt > 0
     ORDER BY locale ASC, gender DESC
-    LIMIT 10
+    LIMIT 0, 10
 ```
 
 ### **update_json_field**

@@ -32,3 +32,6 @@ def init_test_orm():
         }
     }
     asyncio.run(Tortoise.init(config=config))
+
+
+init_test_orm()

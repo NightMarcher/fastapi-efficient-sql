@@ -60,6 +60,7 @@ async def query_group_by_locale_view(
         groups=["locale", "gender"],
         having="cnt > 0",
         orders=["locale", "-gender"],
+        offset=0,
         limit=10,
     )
     return {"dicts": dicts}

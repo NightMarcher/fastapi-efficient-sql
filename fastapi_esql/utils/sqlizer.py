@@ -117,6 +117,7 @@ class SQLizer:
         groups: Optional[List[str]] = None,
         having: Optional[str] = None,
         orders: Optional[List[str]] = None,
+        offset: Optional[int] = None,
         limit: int = 0,
         model: Optional[Model] = None,
     ) -> Optional[str]:
@@ -128,8 +129,8 @@ class SQLizer:
         group_by = f"    GROUP BY {', '.join(groups)}" if groups else ""
         having_ = f"    HAVING {having}" if having else ""
         order_by = f"    ORDER BY {cls.resolve_orders(orders)}" if orders else ""
-        limit_ = f"    LIMIT {limit}" if limit else ""
-        # NOTE Doesn't support `offset` parameter due to it's bad performance
+        offset_ = "" if offset is None else f"{offset}, "
+        limit_ = f"    LIMIT {offset_}{limit}" if limit else ""
         extras = [group_by, having_, order_by, limit_]
 
         sql = """

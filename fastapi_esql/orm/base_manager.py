@@ -66,6 +66,7 @@ class BaseManager(metaclass=AppMetaclass):
         groups: Optional[List[str]] = None,
         having: Optional[str] = None,
         orders: Optional[List[str]] = None,
+        offset: Optional[int] = None,
         limit: int = 0,
         conn: Optional[BaseDBAsyncClient] = None,
     ):
@@ -76,6 +77,7 @@ class BaseManager(metaclass=AppMetaclass):
             groups,
             having,
             orders,
+            offset,
             limit,
             cls.model,
         )

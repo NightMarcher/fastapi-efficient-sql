@@ -1,13 +1,12 @@
 from datetime import datetime
 from unittest import TestCase
 
+from examples.service.models.demo import Account
+from examples.service.constants.enums import GenderEnum, LocaleEnum
 from fastapi_esql import (
     Cases, RawSQL, SQLizer,
     Q, QsParsingError, WrongParamsError,
 )
-
-from examples.service.models.demo import Account
-from examples.service.constants.enums import GenderEnum, LocaleEnum
 
 
 class TestRawSQL(TestCase):

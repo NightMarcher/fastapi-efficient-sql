@@ -2,6 +2,8 @@ import asyncio
 
 from tortoise import Tortoise
 
+TEST_CONN = "test"
+
 
 def init_test_orm():
     """
@@ -11,7 +13,7 @@ def init_test_orm():
     config = {
         "timezone": "Asia/Shanghai",
         "connections": {
-            "test": {
+            TEST_CONN: {
                 "engine": "tortoise.backends.mysql",
                 "credentials": {
                     "host": "localhost",
@@ -27,11 +29,15 @@ def init_test_orm():
         "apps": {
             "demo": {
                 "models": ["examples.service.models.demo"],
-                "default_connection": "test"
+                "default_connection": TEST_CONN
             }
         }
     }
     asyncio.run(Tortoise.init(config=config))
+
+
+def get_test_conn():
+    return Tortoise.get_connection(TEST_CONN)
 
 
 init_test_orm()

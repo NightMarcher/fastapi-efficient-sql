@@ -163,8 +163,8 @@ Generate sql and execute
 ```python
 await AccountMgr.bulk_update_from_dicts(
     [
-        {'id': 7, 'active': False, 'gender': <GenderEnum.male: 1>},
-        {'id': 15, 'active': True, 'gender': <GenderEnum.unknown: 0>}
+        {'id': 7, 'active': False, 'gender': GenderEnum.male},
+        {'id': 15, 'active': True, 'gender': GenderEnum.unknown}
     ],
     join_fields=["id"],
     update_fields=["active", "gender"],

@@ -2,7 +2,7 @@
 
 Installed as package by `pip install fastapi-efficient-sql`
 
-Install developing requirements by `pipenv install --skip-lock --dev`
+Install developing requirements by `pipenv install --skip-lock --dev` or `pip install -r requirements-dev.txt`
 
 Run unittest by `pytest -sv`
 

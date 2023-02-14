@@ -2,7 +2,7 @@ from logging import getLogger
 from json import dumps
 from typing import Any, Dict, List, Optional, Union
 
-from tortoise import Model, __version__
+from tortoise import Model, __version__ as tortoise_version
 from tortoise.queryset import Q
 from tortoise.query_utils import QueryModifier
 
@@ -70,7 +70,7 @@ class SQLizer:
         for q in qs:
             # NOTE Method `Q.resolve` changed since version 0.18.0
             # https://github.com/tortoise/tortoise-orm/commit/37178e175bc12bc4767b93142dab0209f9240c55
-            if __version__ >= "0.18.0":
+            if tortoise_version >= "0.18.0":
                 modifier &= q.resolve(model, model._meta.basetable)
             else:
                 modifier &= q.resolve(model, {}, {}, model._meta.basetable)

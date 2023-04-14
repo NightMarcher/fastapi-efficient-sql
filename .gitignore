@@ -1,5 +1,3 @@
-.vscode
-
 __pycache__
 
 build
@@ -7,3 +5,4 @@ dist
 fastapi_efficient_sql.egg-info
 
 Pipfile.lock
+poetry.lock

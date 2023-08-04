@@ -5,7 +5,7 @@ from tortoise import Tortoise
 TEST_CONN = "test"
 
 
-def init_test_orm():
+async def init_tortoise():
     """
     CREATE USER 'demo_test'@'localhost' IDENTIFIED BY 'demo_TEST#0';
     GRANT ALL ON demo.* TO 'demo_test'@'localhost';
@@ -33,11 +33,8 @@ def init_test_orm():
             }
         }
     }
-    asyncio.run(Tortoise.init(config=config))
+    await Tortoise.init(config=config)
 
 
 def get_test_conn():
     return Tortoise.get_connection(TEST_CONN)
-
-
-init_test_orm()

@@ -9,19 +9,7 @@ packages = [{include = "fastapi_esql"}]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-tortoise-orm = "^0.16.17"
 
-
-[tool.poetry.group.dev.dependencies]
-aiomysql = "^0.1.1"
-asynctest = "^0.13.0"
-autopep8 = "^2.0.2"
-cryptography = "^40.0.1"
-faker = "^18.4.0"
-fastapi = "^0.95.0"
-pytest = "^7.3.0"
-pytest-asyncio = "^0.21.0"
-uvicorn = "^0.21.1"
 
 [build-system]
 requires = ["poetry-core"]

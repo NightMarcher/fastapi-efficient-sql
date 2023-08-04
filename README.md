@@ -2,7 +2,9 @@
 
 Installed as package by `pip install fastapi-efficient-sql`
 
-Install developing requirements by `pipenv install --skip-lock --dev` or `pip install -r requirements-dev.txt`
+Install developing requirements by `pyenv local 3.7.9`, `poetry env use 3.7.9`, `poetry shell` and `pip install -r requirements-dev.txt`
+
+Run demo service by `python -m examples.service`
 
 Run unittest by `pytest -sv`
 

@@ -1,10 +1,9 @@
 aiomysql
 asynctest
-autopep8
 cryptography
 faker
 fastapi
 pytest
 pytest-asyncio
-tortoise-orm
+tortoise-orm>=0.16.17
 uvicorn

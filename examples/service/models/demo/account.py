@@ -1,6 +1,5 @@
 from fastapi_esql import BaseModel
 from tortoise import fields
-from tortoise.contrib.pydantic import pydantic_model_creator
 
 from examples.service.constants.enums import GenderEnum, LocaleEnum
 
@@ -13,6 +12,9 @@ class Account(BaseModel):
         `gender` tinyint unsigned NOT NULL DEFAULT 0 COMMENT '0:unknown, 1:male, 2:female',
         `name` varchar(32) NOT NULL DEFAULT '',
         `locale` varchar(5) NOT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        `extend` json NOT NULL,
         PRIMARY KEY (`id`),
         KEY `created_at-idx` (`created_at`),
         KEY `updated_at-idx` (`updated_at`)
@@ -27,6 +29,3 @@ class Account(BaseModel):
     class Meta:
         app = "demo"
         table = "account"
-
-
-AccountIn = pydantic_model_creator(Account, name="AccountIn", exclude=("active"), exclude_readonly=True)

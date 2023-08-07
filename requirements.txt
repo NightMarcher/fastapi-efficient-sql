@@ -1,1 +1,1 @@
-tortoise-orm
+tortoise-orm>=0.16.17

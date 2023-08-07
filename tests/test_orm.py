@@ -26,7 +26,12 @@ class TestOrm(TestCase):
             class AccountMgr(BaseManager, metaclass=DemoMetaclass):
                 model = MyModel
 
-    def test_no_conn(self):
+    def test_ro_conn(self):
+        class AccountMgr(BaseManager, metaclass=DemoMetaclass):
+            model = Account
+        AccountMgr.ro_conn
+
+    def test_no_rw_conn(self):
         with self.assertRaises(NotImplementedError):
             class AccountMgr(BaseManager, metaclass=DemoMetaclass):
                 model = Account

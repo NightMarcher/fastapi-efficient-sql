@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "fastapi-efficient-sql"
+version = "0.0.8"
+description = "Generate bulk DML SQL and execute them based on Tortoise ORM and mysql8.0+, and integrated with FastAPI."
+authors = ["BryanLee <bryanlee@126.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "fastapi_esql"}]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

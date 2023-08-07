@@ -1,5 +1,7 @@
+from asynctest import TestCase
 from datetime import datetime
-from unittest import TestCase
+
+from tortoise import run_async
 
 from examples.service.models.demo import Account
 from examples.service.constants.enums import GenderEnum, LocaleEnum
@@ -7,6 +9,9 @@ from fastapi_esql import (
     Cases, RawSQL, SQLizer,
     Q, QsParsingError, WrongParamsError,
 )
+from . import init_tortoise
+
+run_async(init_tortoise())
 
 
 class TestRawSQL(TestCase):

@@ -50,7 +50,7 @@ class SQLizer:
         model: Optional[Model] = None,
     ) -> str:
         if not model and not isinstance(wheres, str):
-            raise WrongParamsError("Parameter `wheres` only support str type if no model passed")
+            raise WrongParamsError("Parameter `wheres` only supports str if no model exists")
 
         if isinstance(wheres, str):
             return wheres
@@ -61,10 +61,10 @@ class SQLizer:
         elif isinstance(wheres, list):
             qs = [q for q in wheres if isinstance(q, Q)]
         else:
-            raise WrongParamsError("Parameter `wheres` only supports str, dict and list type")
+            raise WrongParamsError("Parameter `wheres` only support str, Q, Dict[str, Any] and List[Q]")
 
         if not qs:
-            raise QsParsingError("Parsing `wheres` for qs failed!")
+            raise QsParsingError("Parsing `wheres` for QuerySet failed")
 
         modifier = QueryModifier()
         for q in qs:
@@ -122,9 +122,9 @@ class SQLizer:
         model: Optional[Model] = None,
     ) -> Optional[str]:
         if not all([table, fields, wheres]):
-            raise WrongParamsError("Please check your params")
+            raise WrongParamsError("Parameters `table`, `fields`, `wheres` are required")
         if having and not groups:
-            raise WrongParamsError("Parameter `groups` shoud be no empty when `having` isn't")
+            raise WrongParamsError("Parameter `groups` shoud not be empty if `having` exists")
 
         group_by = f"    GROUP BY {', '.join(groups)}" if groups else ""
         having_ = f"    HAVING {having}" if having else ""
@@ -160,9 +160,11 @@ class SQLizer:
         model: Optional[Model] = None,
     ) -> Optional[str]:
         if not all([table, json_field, wheres]):
-            raise WrongParamsError("Please check your params")
+            raise WrongParamsError("Parameters `table`, `json_field`, `wheres` are required")
         if not any([merge_dict, path_value_dict, remove_paths]):
-            raise WrongParamsError("Please check your params")
+            raise WrongParamsError(
+                "At least one no empty parameter is required between `merge_dict`, `path_value_dict` and `remove_paths`"
+            )
 
         json_obj = f"COALESCE({json_field}, '{json_type()}')"
         if remove_paths:
@@ -195,7 +197,7 @@ class SQLizer:
         using_values: bool = False,
     ) -> Optional[str]:
         if not all([table, dicts, insert_fields, upsert_fields]):
-            raise WrongParamsError("Please check your params")
+            raise WrongParamsError("Parameters `table`, `dicts`, `insert_fields`, `upsert_fields` are required")
 
         values = [
             f"      ({', '.join(cls.sqlize_value(d.get(f)) for f in insert_fields)})"
@@ -236,8 +238,10 @@ class SQLizer:
         to_table: Optional[str] = None,
         model: Optional[Model] = None,
     ) -> Optional[str]:
-        if not all([table, wheres] or not any([remain_fields, assign_field_dict])):
-            raise WrongParamsError("Please check your params")
+        if not all([table, wheres]):
+            raise WrongParamsError("Parameters `table`, `wheres` are required")
+        if not any([remain_fields, assign_field_dict]):
+            raise WrongParamsError("At least one no empty parameter is required between `remain_fields` and `assign_field_dict`")
 
         fields = [*remain_fields]
         assign_fields = []
@@ -263,7 +267,7 @@ class SQLizer:
         using_values: bool = True,
     ) -> Optional[str]:
         if not all([dicts, fields]):
-            raise WrongParamsError("Please check your params")
+            raise WrongParamsError("Parameters `dicts`, `fields` are required")
 
         if using_values:
             rows = [
@@ -297,7 +301,7 @@ class SQLizer:
         using_values: bool = True,
     ) -> Optional[str]:
         if not all([table, dicts, join_fields, update_fields]):
-            raise WrongParamsError("Please check your params")
+            raise WrongParamsError("Parameters `table`, `dicts`, `join_fields`, `update_fields` are required")
 
         joins = [f"{table}.{jf}=tmp.{jf}" for jf in join_fields]
         updates = [f"{table}.{uf}=tmp.{uf}" for uf in update_fields]

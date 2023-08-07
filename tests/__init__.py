@@ -1,5 +1,3 @@
-import asyncio
-
 from tortoise import Tortoise
 
 TEST_CONN = "test"

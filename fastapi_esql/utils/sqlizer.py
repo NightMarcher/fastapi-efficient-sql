@@ -114,11 +114,12 @@ class SQLizer:
         table: str,
         fields: List[str],
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        index: Optional[str] = None,
         groups: Optional[List[str]] = None,
         having: Optional[str] = None,
         orders: Optional[List[str]] = None,
         offset: Optional[int] = None,
-        limit: int = 0,
+        limit: Optional[int] = None,
         model: Optional[Model] = None,
     ) -> Optional[str]:
         if not all([table, fields, wheres]):
@@ -136,11 +137,12 @@ class SQLizer:
         sql = """
     SELECT
       {}
-    FROM {}
+    FROM {}{}
     WHERE {}
 {}""".format(
         ", ".join(fields),
         table,
+        f" FORCE INDEX (`{index}`)" if index else "",
         cls.resolve_wheres(wheres, model),
         "\n".join(i for i in extras if i),
     )

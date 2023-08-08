@@ -20,6 +20,22 @@ class CursorHandler:
             return None
 
     @classmethod
+    async def fetch_one(
+        cls,
+        sql: str,
+        conn: BaseDBAsyncClient,
+        logger: Logger,
+    ) -> Optional[Dict[str, Any]]:
+        try:
+            dicts = await conn.execute_query_dict(sql)
+            if dicts:
+                return dicts[0]
+            return {}
+        except Exception as e:
+            logger.exception(f"{e} SQL=>{sql}")
+            return None
+
+    @classmethod
     async def sum_row_cnt(
         cls,
         sql: str,

@@ -50,13 +50,14 @@ await AccountMgr.select_custom_fields(
     # wheres=Q(Q(id__in=aids), Q(gender=1), join_type="AND"),
     # wheres={"id__in": aids, "gender": 1},
     # wheres=[Q(id__in=aids), Q(gender=1)],
+    index="PRIMARY",
 )
 ```
 Generate sql and execute
 ```sql
     SELECT
       id, extend ->> '$.last_login.ipv4' ipv4, extend ->> '$.last_login.start_datetime' start_datetime, CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec
-    FROM account
+    FROM account FORCE INDEX (`PRIMARY`)
     WHERE id IN (1,2,3) AND gender=1
 ```
 

@@ -114,12 +114,13 @@ class TestSQLizer(TestCase):
                 "CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec"
             ],
             wheres=f"id IN ({','.join(map(str, aids))}) AND gender=1",
+            index="PRIMARY",
             model=self.model,
         )
         assert basic_sql == """
     SELECT
       id, extend ->> '$.last_login.ipv4' ipv4, extend ->> '$.last_login.start_datetime' start_datetime, CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec
-    FROM account
+    FROM account FORCE INDEX (`PRIMARY`)
     WHERE id IN (1,2,3) AND gender=1
 """
 

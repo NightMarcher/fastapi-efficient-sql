@@ -45,7 +45,11 @@ async def update_view(
 async def query_by_id_view(
     aid: int = Query(...),
 ):
-    account = await AccountMgr.get_by_pk(aid)
+    # account = await AccountMgr.get_by_pk(aid)
+    account = await AccountMgr.select_one_record(
+        fields=["*"],
+        wheres=Q(id=aid),
+    )
     return {"account": account}
 
 

@@ -21,6 +21,18 @@ class TestCursorHandler(TestCase):
         print(f"result => {result}")
         assert result
 
+    async def test_fetch_one(self):
+        one = await CursorHandler.fetch_one("SELECT 1 idx", self.conn, logger)
+        assert one == {"idx": 1}
+
+        with patch(
+            "tortoise.backends.mysql.client_class.execute_query_dict",
+        ) as mock_exec:
+            mock_exec.return_value = []
+            empty = await CursorHandler.fetch_one("SELECT 1 idx", self.conn, logger)
+            print(f"empty => {empty}")
+            assert empty == {}
+
     @patch("tortoise.backends.mysql.client_class.execute_query")
     async def test_sum_row_cnt(self, mock_exec):
         mock_exec.return_value = 10, object()

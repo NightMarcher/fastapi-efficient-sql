@@ -63,17 +63,19 @@ class BaseManager(metaclass=AppMetaclass):
         cls,
         fields: List[str],
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        index: Optional[str] = None,
         groups: Optional[List[str]] = None,
         having: Optional[str] = None,
         orders: Optional[List[str]] = None,
         offset: Optional[int] = None,
-        limit: int = 0,
+        limit: Optional[int] = None,
         conn: Optional[BaseDBAsyncClient] = None,
     ):
         sql = SQLizer.select_custom_fields(
             cls.table,
             fields,
             wheres,
+            index,
             groups,
             having,
             orders,
@@ -83,6 +85,32 @@ class BaseManager(metaclass=AppMetaclass):
         )
         conn = conn or cls.ro_conn
         return await CursorHandler.fetch_dicts(sql, conn, logger)
+
+    @classmethod
+    async def select_one_record(
+        cls,
+        fields: List[str],
+        wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        index: Optional[str] = None,
+        groups: Optional[List[str]] = None,
+        having: Optional[str] = None,
+        orders: Optional[List[str]] = None,
+        conn: Optional[BaseDBAsyncClient] = None,
+    ):
+        sql = SQLizer.select_custom_fields(
+            cls.table,
+            fields,
+            wheres,
+            index,
+            groups,
+            having,
+            orders,
+            0,
+            1,
+            cls.model,
+        )
+        conn = conn or cls.ro_conn
+        return await CursorHandler.fetch_one(sql, conn, logger)
 
     @classmethod
     async def update_json_field(

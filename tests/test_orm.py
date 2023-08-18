@@ -12,7 +12,8 @@ class DemoMetaclass(AppMetaclass):
         return None
 
 
-class TestOrm(TestCase):
+class TestORM(TestCase):
+
     def test_no_model(self):
         with self.assertRaises(NotImplementedError):
             class AccountMgr(BaseManager, metaclass=DemoMetaclass):

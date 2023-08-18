@@ -2,7 +2,7 @@ from copy import deepcopy
 from json import loads
 from unittest import TestCase
 
-from fastapi_esql import convert_dicts
+from fastapi_esql import convert_dicts, escape_string
 
 
 class TestConvertDicts(TestCase):
@@ -23,3 +23,11 @@ class TestConvertDicts(TestCase):
         dicts = deepcopy(self.dicts)
         convert_dicts(dicts, {"value": int})
         assert dicts == [{"id": 1, "value": 1}, {"id": 2, "value": '{"k": [true, null]}'}]
+
+
+class TestEscapeString(TestCase):
+
+    def test_normal(self):
+        assert escape_string("'") == "\\'"
+        assert escape_string('"') == '\\"'
+        assert escape_string('\\') == '\\\\'

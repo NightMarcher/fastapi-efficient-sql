@@ -8,9 +8,13 @@ def convert_dicts(dicts, converters: Dict[str, Callable]):
     if not converters:
         return
     for d in dicts:
-        for f, cvt in converters.items():
-            v = d[f]
+        for field, converter in converters.items():
+            if field not in d:
+                logger.warning(f"Item `{field}` does not exist in dict `{d}`")
+                continue
+
+            value = d[field]
             try:
-                d[f] = cvt(v)
+                d[field] = converter(value)
             except Exception as e:
-                logger.warning(f"Converting value `{v}` by `{cvt.__name__}` failed => {e}")
+                logger.warning(f"Converting value `{value}` by `{converter.__name__}` failed => {e}")

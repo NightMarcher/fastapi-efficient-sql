@@ -1,5 +1,6 @@
 from logging.config import dictConfig
 
+from tortoise.converters import escape_string
 from tortoise.queryset import Q
 
 from .const import (
@@ -36,6 +37,7 @@ __all__ = [
     "SQLizer",
     "Singleton",
     "convert_dicts",
+    "escape_string",
     "timing",
 ]
 

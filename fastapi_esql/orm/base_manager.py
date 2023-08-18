@@ -69,6 +69,7 @@ class BaseManager(metaclass=AppMetaclass):
         orders: Optional[List[str]] = None,
         offset: Optional[int] = None,
         limit: Optional[int] = None,
+        convert_fields: Optional[List[str]] = None,
         conn: Optional[BaseDBAsyncClient] = None,
     ):
         sql = SQLizer.select_custom_fields(
@@ -84,7 +85,11 @@ class BaseManager(metaclass=AppMetaclass):
             cls.model,
         )
         conn = conn or cls.ro_conn
-        return await CursorHandler.fetch_dicts(sql, conn, logger)
+        converters = {
+            f: cls.model._meta.fields_map[f].to_python_value
+            for f in convert_fields if f in cls.model._meta.db_fields
+        } if convert_fields else None
+        return await CursorHandler.fetch_dicts(sql, conn, logger, converters)
 
     @classmethod
     async def select_one_record(
@@ -95,6 +100,7 @@ class BaseManager(metaclass=AppMetaclass):
         groups: Optional[List[str]] = None,
         having: Optional[str] = None,
         orders: Optional[List[str]] = None,
+        convert_fields: Optional[List[str]] = None,
         conn: Optional[BaseDBAsyncClient] = None,
     ):
         sql = SQLizer.select_custom_fields(
@@ -110,7 +116,11 @@ class BaseManager(metaclass=AppMetaclass):
             cls.model,
         )
         conn = conn or cls.ro_conn
-        return await CursorHandler.fetch_one(sql, conn, logger)
+        converters = {
+            f: cls.model._meta.fields_map[f].to_python_value
+            for f in convert_fields if f in cls.model._meta.db_fields
+        } if convert_fields else None
+        return await CursorHandler.fetch_one(sql, conn, logger, converters)
 
     @classmethod
     async def update_json_field(

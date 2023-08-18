@@ -1,7 +1,9 @@
 from logging import Logger
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Callable
 
 from tortoise import BaseDBAsyncClient
+
+from .converter import convert_dicts
 
 
 class CursorHandler:
@@ -12,9 +14,12 @@ class CursorHandler:
         sql: str,
         conn: BaseDBAsyncClient,
         logger: Logger,
+        converters: Dict[str, Callable] = None,
     ) -> Optional[List[Dict[str, Any]]]:
         try:
-            return await conn.execute_query_dict(sql)
+            dicts = await conn.execute_query_dict(sql)
+            convert_dicts(dicts, converters)
+            return dicts
         except Exception as e:
             logger.exception(f"{e} SQL=>{sql}")
             return None
@@ -25,9 +30,11 @@ class CursorHandler:
         sql: str,
         conn: BaseDBAsyncClient,
         logger: Logger,
+        converters: Dict[str, Callable] = None,
     ) -> Optional[Dict[str, Any]]:
         try:
             dicts = await conn.execute_query_dict(sql)
+            convert_dicts(dicts, converters)
             if dicts:
                 return dicts[0]
             return {}

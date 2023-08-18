@@ -50,7 +50,7 @@ class SQLizer:
         model: Optional[Model] = None,
     ) -> str:
         if not model and not isinstance(wheres, str):
-            raise WrongParamsError("Parameter `wheres` only supports str if no model exists")
+            raise WrongParamsError("Parameter `wheres` only supports `str` if no model exists")
 
         if isinstance(wheres, str):
             return wheres
@@ -61,10 +61,10 @@ class SQLizer:
         elif isinstance(wheres, list):
             qs = [q for q in wheres if isinstance(q, Q)]
         else:
-            raise WrongParamsError("Parameter `wheres` only support str, Q, Dict[str, Any] and List[Q]")
+            raise WrongParamsError("Parameter `wheres` only support `str`, `Q`, `Dict[str, Any]` and `List[Q]`")
 
         if not qs:
-            raise QsParsingError("Parsing `wheres` for QuerySet failed")
+            raise QsParsingError("Parsing `wheres` for `QuerySet` failed")
 
         modifier = QueryModifier()
         for q in qs:

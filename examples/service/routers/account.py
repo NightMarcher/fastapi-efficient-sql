@@ -3,9 +3,8 @@ from typing import List
 
 from faker import Faker
 from fastapi import APIRouter, Body, Query
-from fastapi_esql import Cases, RawSQL
+from fastapi_esql import Cases, Q, RawSQL
 from pydantic import BaseModel, Field
-from tortoise.queryset import Q
 
 from examples.service.constants.enums import GenderEnum, LocaleEnum
 from examples.service.managers.demo.account import AccountMgr
@@ -45,11 +44,20 @@ async def update_view(
 async def query_by_id_view(
     aid: int = Query(...),
 ):
+    meta = AccountMgr.model._meta
+    print(dir(meta))
+    print("db_complex_fields", meta.db_complex_fields, "", sep="\n")
+    print("db_default_fields", meta.db_default_fields, "", sep="\n")
+    print("db_fields", meta.db_fields, "", sep="\n")
+    print("db_native_fields", meta.db_native_fields, "", sep="\n")
+    print("fields_map", meta.fields_map, "", sep="\n")
     # account = await AccountMgr.get_by_pk(aid)
     account = await AccountMgr.select_one_record(
         fields=["*"],
         wheres=Q(id=aid),
+        convert_fields=["active", "gender", "locale", "extend"],
     )
+    print(account)
     return {"account": account}
 
 

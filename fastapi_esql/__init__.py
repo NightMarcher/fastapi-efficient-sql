@@ -17,6 +17,7 @@ from .utils import (
     RawSQL,
     SQLizer,
     Singleton,
+    convert_dicts,
     timing,
 )
 
@@ -34,6 +35,7 @@ __all__ = [
     "RawSQL",
     "SQLizer",
     "Singleton",
+    "convert_dicts",
     "timing",
 ]
 

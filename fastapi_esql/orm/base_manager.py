@@ -149,7 +149,7 @@ class BaseManager(metaclass=AppMetaclass):
         cls,
         dicts: List[Dict[str, Any]],
         insert_fields: List[str],
-        upsert_fields: List[str],
+        upsert_fields: Optional[List[str]] = None,
         using_values: bool = False,
     ):
         sql = SQLizer.upsert_on_duplicate(

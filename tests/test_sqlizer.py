@@ -251,6 +251,24 @@ class TestSQLizer(TestCase):
     AS `new_account` ON DUPLICATE KEY UPDATE name=`new_account`.name, locale=`new_account`.locale
 """
 
+        only_insert_sql = SQLizer.upsert_on_duplicate(
+            self.table,
+            [
+                {'id': 7, 'gender': 1, 'name': '斉藤 修平', 'locale': 'ja_JP', 'extend': {}},
+                {'id': 8, 'gender': 1, 'name': 'Ojas Salvi', 'locale': 'en_IN', 'extend': {}},
+                {'id': 9, 'gender': 1, 'name': '羊淑兰', 'locale': 'zh_CN', 'extend': {}}
+            ],
+            insert_fields=["id", "gender", "name", "locale", "extend"],
+        )
+        assert only_insert_sql == """
+    INSERT INTO account
+      (id, gender, name, locale, extend)
+    VALUES
+      (7, 1, '斉藤 修平', 'ja_JP', '{}'),
+      (8, 1, 'Ojas Salvi', 'en_IN', '{}'),
+      (9, 1, '羊淑兰', 'zh_CN', '{}')
+"""
+
     def test_insert_into_select(self):
         with self.assertRaises(WrongParamsError):
             SQLizer.insert_into_select(

@@ -153,7 +153,7 @@ async def update_last_login_view(
 @router.post("/bulk_upsert")
 async def bulk_upsert_view():
     dicts = []
-    for (idx, locale) in enumerate([LocaleEnum.ja_JP, LocaleEnum.en_IN, LocaleEnum.zh_CN], 7):
+    for (idx, locale) in enumerate([LocaleEnum.ja_JP, LocaleEnum.en_IN, LocaleEnum.zh_CN], 10):
         faker = Faker(locale)
         dicts.append({
             "id": idx,
@@ -165,8 +165,7 @@ async def bulk_upsert_view():
     row_cnt = await AccountMgr.upsert_on_duplicate(
         dicts,
         insert_fields=["id", "gender", "name", "locale", "extend"],
-        upsert_fields=["name", "locale"],
-        using_values=False,
+        # upsert_fields=["name", "locale"],
     )
     return {"row_cnt": row_cnt}
 

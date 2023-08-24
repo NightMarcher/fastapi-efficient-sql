@@ -212,9 +212,9 @@ class TestSQLizer(TestCase):
         old_sql = SQLizer.upsert_on_duplicate(
             self.table,
             [
-                {'id': 7, 'gender': 1, 'name': '斉藤 修平', 'locale': 'ja_JP', 'extend': {}},
-                {'id': 8, 'gender': 1, 'name': 'Ojas Salvi', 'locale': 'en_IN', 'extend': {}},
-                {'id': 9, 'gender': 1, 'name': '羊淑兰', 'locale': 'zh_CN', 'extend': {}}
+                {"id": 7, "gender": 1, "name": "斉藤 修平", "locale": "ja_JP", "extend": {}},
+                {"id": 8, "gender": 1, "name": "Ojas Salvi", "locale": "en_IN", "extend": {}},
+                {"id": 9, "gender": 1, "name": "羊淑兰", "locale": "zh_CN", "extend": {}}
             ],
             insert_fields=["id", "gender", "name", "locale", "extend"],
             upsert_fields=["name", "locale"],
@@ -233,9 +233,9 @@ class TestSQLizer(TestCase):
         new_sql = SQLizer.upsert_on_duplicate(
             self.table,
             [
-                {'id': 7, 'gender': 1, 'name': '斉藤 修平', 'locale': 'ja_JP', 'extend': {}},
-                {'id': 8, 'gender': 1, 'name': 'Ojas Salvi', 'locale': 'en_IN', 'extend': {}},
-                {'id': 9, 'gender': 1, 'name': '羊淑兰', 'locale': 'zh_CN', 'extend': {}}
+                {"id": 7, "gender": 1, "name": "斉藤 修平", "locale": "ja_JP", "extend": {}},
+                {"id": 8, "gender": 1, "name": "Ojas Salvi", "locale": "en_IN", "extend": {}},
+                {"id": 9, "gender": 1, "name": "羊淑兰", "locale": "zh_CN", "extend": {}}
             ],
             insert_fields=["id", "gender", "name", "locale", "extend"],
             upsert_fields=["name", "locale"],
@@ -254,9 +254,9 @@ class TestSQLizer(TestCase):
         only_insert_sql = SQLizer.upsert_on_duplicate(
             self.table,
             [
-                {'id': 7, 'gender': 1, 'name': '斉藤 修平', 'locale': 'ja_JP', 'extend': {}},
-                {'id': 8, 'gender': 1, 'name': 'Ojas Salvi', 'locale': 'en_IN', 'extend': {}},
-                {'id': 9, 'gender': 1, 'name': '羊淑兰', 'locale': 'zh_CN', 'extend': {}}
+                {"id": 7, "gender": 1, "name": "斉藤 修平", "locale": "ja_JP", "extend": {}},
+                {"id": 8, "gender": 1, "name": "Ojas Salvi", "locale": "en_IN", "extend": {}},
+                {"id": 9, "gender": 1, "name": "羊淑兰", "locale": "zh_CN", "extend": {}}
             ],
             insert_fields=["id", "gender", "name", "locale", "extend"],
         )
@@ -328,8 +328,8 @@ class TestSQLizer(TestCase):
 
         old_sql = SQLizer.build_fly_table(
             [
-                {'id': 7, 'active': False, 'gender': GenderEnum.male},
-                {'id': 15, 'active': True, 'gender': GenderEnum.unknown}
+                {"id": 7, "active": False, "gender": GenderEnum.male},
+                {"id": 15, "active": True, "gender": GenderEnum.unknown}
             ],
             fields=["id", "active", "gender"],
             using_values=False,
@@ -343,8 +343,8 @@ class TestSQLizer(TestCase):
 
         new_sql = SQLizer.build_fly_table(
             [
-                {'id': 7, 'active': False, 'gender': GenderEnum.male},
-                {'id': 15, 'active': True, 'gender': GenderEnum.unknown}
+                {"id": 7, "active": False, "gender": GenderEnum.male},
+                {"id": 15, "active": True, "gender": GenderEnum.unknown}
             ],
             fields=["id", "active", "gender"],
             using_values=True,
@@ -368,22 +368,23 @@ class TestSQLizer(TestCase):
         sql = SQLizer.bulk_update_from_dicts(
             self.table,
             [
-                {'id': 7, 'active': False, 'gender': GenderEnum.male},
-                {'id': 15, 'active': True, 'gender': GenderEnum.unknown}
+                {"id": 7, "active": False, "gender": GenderEnum.male, "extend": {"test": 1, "debug": 0}},
+                {"id": 15, "active": True, "gender": GenderEnum.unknown, "extend": {"test": 1, "debug": 0}}
             ],
             join_fields=["id"],
             update_fields=["active", "gender"],
+            merge_fields=["extend"],
         )
         assert sql == """
     UPDATE account
     JOIN (
         SELECT * FROM (
           VALUES
-          ROW(7, False, 1),
-          ROW(15, True, 0)
-        ) AS fly_table (id, active, gender)
+          ROW(7, False, 1, '{"test": 1, "debug": 0}'),
+          ROW(15, True, 0, '{"test": 1, "debug": 0}')
+        ) AS fly_table (id, active, gender, extend)
     ) tmp ON account.id=tmp.id
-    SET account.active=tmp.active, account.gender=tmp.gender
+    SET account.active=tmp.active, account.gender=tmp.gender, account.extend=JSON_MERGE_PATCH(COALESCE(account.extend, '{}'), tmp.extend)
 """
 
     # def test_(self):

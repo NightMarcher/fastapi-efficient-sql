@@ -192,6 +192,7 @@ class UpdateIn(BaseModel):
     id: int = Field(...)
     active: bool = Field(...)
     gender: GenderEnum = Field(...)
+    extend: dict
 
 @router.post("/bulk_update")
 async def bulk_update_view(
@@ -201,6 +202,7 @@ async def bulk_update_view(
         [d.dict() for d in dicts],
         join_fields=["id"],
         update_fields=["active", "gender"],
+        merge_fields=["extend"],
         using_values=True,
     )
     return {"row_cnt": row_cnt}

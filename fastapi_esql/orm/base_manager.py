@@ -185,6 +185,7 @@ class BaseManager(metaclass=AppMetaclass):
         dicts: List[Dict[str, Any]],
         join_fields: List[str],
         update_fields: List[str],
+        merge_fields: Optional[List[str]] = None,
         using_values: bool = True,
     ):
         sql = SQLizer.bulk_update_from_dicts(
@@ -192,6 +193,7 @@ class BaseManager(metaclass=AppMetaclass):
             dicts,
             join_fields,
             update_fields,
+            merge_fields,
             using_values,
         )
         return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)

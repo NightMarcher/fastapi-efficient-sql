@@ -268,6 +268,7 @@ class SQLizer:
         dicts: List[Dict[str, Any]],
         fields: List[str],
         using_values: bool = True,
+        log_sql: bool = True,
     ) -> Optional[str]:
         if not all([dicts, fields]):
             raise WrongParamsError("Parameters `dicts`, `fields` are required")
@@ -291,7 +292,8 @@ class SQLizer:
         SELECT * FROM (
           {values}
         ) AS {table}"""
-        logger.debug(sql)
+        if log_sql:
+            logger.debug(sql)
         return sql
 
     @classmethod
@@ -301,6 +303,7 @@ class SQLizer:
         dicts: List[Dict[str, Any]],
         join_fields: List[str],
         update_fields: List[str],
+        merge_fields: Optional[List[str]] = None,
         using_values: bool = True,
     ) -> Optional[str]:
         if not all([table, dicts, join_fields, update_fields]):
@@ -308,10 +311,14 @@ class SQLizer:
 
         joins = [f"{table}.{jf}=tmp.{jf}" for jf in join_fields]
         updates = [f"{table}.{uf}=tmp.{uf}" for uf in update_fields]
+        merge_fields = merge_fields or []
+        for mf in merge_fields:
+            dict_obj = f"COALESCE({table}.{mf}, '{{}}')"
+            updates.append(f"{table}.{mf}=JSON_MERGE_PATCH({dict_obj}, tmp.{mf})")
 
         sql = f"""
     UPDATE {table}
-    JOIN ({SQLizer.build_fly_table(dicts, join_fields + update_fields, using_values)}
+    JOIN ({SQLizer.build_fly_table(dicts, join_fields + update_fields + merge_fields, using_values, log_sql=False)}
     ) tmp ON {", ".join(joins)}
     SET {", ".join(updates)}
 """

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastapi-efficient-sql"
-version = "0.0.10"
+version = "0.0.11"
 description = "Generate bulk DML SQL and execute them based on Tortoise ORM and mysql8.0+, and integrated with FastAPI."
 authors = ["BryanLee <bryanlee@126.com>"]
 keywords = ["sql", "fastapi", "tortoise-orm", "mysql8", "bulk-operation"]

@@ -160,12 +160,16 @@ async def bulk_upsert_view():
             "gender": faker.random_int(0, 2),
             "name": faker.name(),
             "locale": locale.value,
-            "extend": {},
+            "extend": {"rdm": faker.random_int(0, 10)},
         })
+    from json import dumps
+    print(dumps(dicts, ensure_ascii=False))
     row_cnt = await AccountMgr.upsert_on_duplicate(
         dicts,
         insert_fields=["id", "gender", "name", "locale", "extend"],
-        # upsert_fields=["name", "locale"],
+        upsert_fields=["gender", "name"],
+        merge_fields=["extend"],
+        using_values=True,
     )
     return {"row_cnt": row_cnt}
 

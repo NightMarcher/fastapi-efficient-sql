@@ -150,6 +150,7 @@ class BaseManager(metaclass=AppMetaclass):
         dicts: List[Dict[str, Any]],
         insert_fields: List[str],
         upsert_fields: Optional[List[str]] = None,
+        merge_fields: Optional[List[str]] = None,
         using_values: bool = False,
     ):
         sql = SQLizer.upsert_on_duplicate(
@@ -157,6 +158,7 @@ class BaseManager(metaclass=AppMetaclass):
             dicts,
             insert_fields,
             upsert_fields,
+            merge_fields,
             using_values,
         )
         return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)

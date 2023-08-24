@@ -119,13 +119,13 @@ Generate sql and execute
 ```python
 await AccountMgr.upsert_on_duplicate(
     [
-        {"id": 7, "gender": 1, "name": "斉藤 修平", "locale": "ja_JP", "extend": {}},
-        {"id": 8, "gender": 1, "name": "Ojas Salvi", "locale": "en_IN", "extend": {}},
-        {"id": 9, "gender": 1, "name": "羊淑兰", "locale": "zh_CN", "extend": {}}
+        {"id": 10, "gender": 1, "name": "田中 知実", "locale": "ja_JP", "extend": {"rdm": 1}},
+        {"id": 11, "gender": 2, "name": "Tara Chadha", "locale": "en_IN", "extend": {"rdm": 10}},
+        {"id": 12, "gender": 2, "name": "吴磊", "locale": "zh_CN", "extend": {"rdm": 9}},
     ],
     insert_fields=["id", "gender", "name", "locale", "extend"],
-    upsert_fields=["name", "locale"],
-    using_values=False,
+    upsert_fields=["gender", "name"],
+    merge_fields=["extend"],
 )
 ```
 Generate sql and execute
@@ -133,10 +133,10 @@ Generate sql and execute
     INSERT INTO account
       (id, gender, name, locale, extend)
     VALUES
-      (7, 1, '斉藤 修平', 'ja_JP', '{}'),
-      (8, 1, 'Ojas Salvi', 'en_IN', '{}'),
-      (9, 1, '羊淑兰', 'zh_CN', '{}')
-    AS `new_account` ON DUPLICATE KEY UPDATE name=`new_account`.name, locale=`new_account`.locale
+      (10, 1, '田中 知実', 'ja_JP', '{"rdm": 1}'),
+      (11, 2, 'Tara Chadha', 'en_IN', '{"rdm": 10}'),
+      (12, 2, '吴磊', 'zh_CN', '{"rdm": 9}')
+    AS `new_account` ON DUPLICATE KEY UPDATE gender=`new_account`.gender, name=`new_account`.name, extend=JSON_MERGE_PATCH(COALESCE(account.extend, '{}'), `new_account`.extend)
 ```
 
 ### **insert_into_select**

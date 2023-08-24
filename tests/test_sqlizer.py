@@ -212,51 +212,52 @@ class TestSQLizer(TestCase):
         old_sql = SQLizer.upsert_on_duplicate(
             self.table,
             [
-                {"id": 7, "gender": 1, "name": "斉藤 修平", "locale": "ja_JP", "extend": {}},
-                {"id": 8, "gender": 1, "name": "Ojas Salvi", "locale": "en_IN", "extend": {}},
-                {"id": 9, "gender": 1, "name": "羊淑兰", "locale": "zh_CN", "extend": {}}
+                {"id": 10, "gender": 2, "name": "佐々木 美加子", "locale": "ja_JP", "extend": {"rdm": 6}},
+                {"id": 11, "gender": 0, "name": "Seher Bumb", "locale": "en_IN", "extend": {"rdm": 4}},
+                {"id": 12, "gender": 0, "name": "谢冬梅", "locale": "zh_CN", "extend": {"rdm": 6}},
             ],
             insert_fields=["id", "gender", "name", "locale", "extend"],
-            upsert_fields=["name", "locale"],
+            upsert_fields=["gender", "name"],
+            merge_fields=["extend"],
             using_values=True,
         )
         assert old_sql == """
     INSERT INTO account
       (id, gender, name, locale, extend)
     VALUES
-      (7, 1, '斉藤 修平', 'ja_JP', '{}'),
-      (8, 1, 'Ojas Salvi', 'en_IN', '{}'),
-      (9, 1, '羊淑兰', 'zh_CN', '{}')
-    ON DUPLICATE KEY UPDATE name=VALUES(name), locale=VALUES(locale)
+      (10, 2, '佐々木 美加子', 'ja_JP', '{"rdm": 6}'),
+      (11, 0, 'Seher Bumb', 'en_IN', '{"rdm": 4}'),
+      (12, 0, '谢冬梅', 'zh_CN', '{"rdm": 6}')
+    ON DUPLICATE KEY UPDATE gender=VALUES(gender), name=VALUES(name), extend=JSON_MERGE_PATCH(COALESCE(account.extend, '{}'), VALUES(extend))
 """
 
         new_sql = SQLizer.upsert_on_duplicate(
             self.table,
             [
-                {"id": 7, "gender": 1, "name": "斉藤 修平", "locale": "ja_JP", "extend": {}},
-                {"id": 8, "gender": 1, "name": "Ojas Salvi", "locale": "en_IN", "extend": {}},
-                {"id": 9, "gender": 1, "name": "羊淑兰", "locale": "zh_CN", "extend": {}}
+                {"id": 10, "gender": 1, "name": "田中 知実", "locale": "ja_JP", "extend": {"rdm": 1}},
+                {"id": 11, "gender": 2, "name": "Tara Chadha", "locale": "en_IN", "extend": {"rdm": 10}},
+                {"id": 12, "gender": 2, "name": "吴磊", "locale": "zh_CN", "extend": {"rdm": 9}},
             ],
             insert_fields=["id", "gender", "name", "locale", "extend"],
-            upsert_fields=["name", "locale"],
-            using_values=False,
+            upsert_fields=["gender", "name"],
+            merge_fields=["extend"],
         )
         assert new_sql == """
     INSERT INTO account
       (id, gender, name, locale, extend)
     VALUES
-      (7, 1, '斉藤 修平', 'ja_JP', '{}'),
-      (8, 1, 'Ojas Salvi', 'en_IN', '{}'),
-      (9, 1, '羊淑兰', 'zh_CN', '{}')
-    AS `new_account` ON DUPLICATE KEY UPDATE name=`new_account`.name, locale=`new_account`.locale
+      (10, 1, '田中 知実', 'ja_JP', '{"rdm": 1}'),
+      (11, 2, 'Tara Chadha', 'en_IN', '{"rdm": 10}'),
+      (12, 2, '吴磊', 'zh_CN', '{"rdm": 9}')
+    AS `new_account` ON DUPLICATE KEY UPDATE gender=`new_account`.gender, name=`new_account`.name, extend=JSON_MERGE_PATCH(COALESCE(account.extend, '{}'), `new_account`.extend)
 """
 
         only_insert_sql = SQLizer.upsert_on_duplicate(
             self.table,
             [
-                {"id": 7, "gender": 1, "name": "斉藤 修平", "locale": "ja_JP", "extend": {}},
-                {"id": 8, "gender": 1, "name": "Ojas Salvi", "locale": "en_IN", "extend": {}},
-                {"id": 9, "gender": 1, "name": "羊淑兰", "locale": "zh_CN", "extend": {}}
+                {"id": 10, "gender": 2, "name": "池田 幹", "locale": "ja_JP", "extend": {"rdm": 9}},
+                {"id": 11, "gender": 0, "name": "Sana Mani", "locale": "en_IN", "extend": {"rdm": 0}},
+                {"id": 12, "gender": 0, "name": "刘柳", "locale": "zh_CN", "extend": {"rdm": 9}},
             ],
             insert_fields=["id", "gender", "name", "locale", "extend"],
         )
@@ -264,9 +265,9 @@ class TestSQLizer(TestCase):
     INSERT INTO account
       (id, gender, name, locale, extend)
     VALUES
-      (7, 1, '斉藤 修平', 'ja_JP', '{}'),
-      (8, 1, 'Ojas Salvi', 'en_IN', '{}'),
-      (9, 1, '羊淑兰', 'zh_CN', '{}')
+      (10, 2, '池田 幹', 'ja_JP', '{"rdm": 9}'),
+      (11, 0, 'Sana Mani', 'en_IN', '{"rdm": 0}'),
+      (12, 0, '刘柳', 'zh_CN', '{"rdm": 9}')
 """
 
     def test_insert_into_select(self):

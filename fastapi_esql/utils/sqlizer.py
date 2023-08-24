@@ -196,6 +196,7 @@ class SQLizer:
         dicts: List[Dict[str, Any]],
         insert_fields: List[str],
         upsert_fields: Optional[List[str]] = None,
+        merge_fields: Optional[List[str]] = None,
         using_values: bool = False,
     ) -> Optional[str]:
         if not all([table, dicts, insert_fields]):
@@ -208,13 +209,21 @@ class SQLizer:
         # NOTE Beginning with MySQL 8.0.19, it is possible to use an alias for the row
         # https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html
         on_duplicate = ""
-        if upsert_fields:
+        if upsert_fields or merge_fields:
+            upsert_fields = upsert_fields or []
+            merge_fields = merge_fields or []
             if using_values:
                 upserts = [f"{field}=VALUES({field})" for field in upsert_fields]
+                for mf in merge_fields:
+                    dict_obj = f"COALESCE({table}.{mf}, '{{}}')"
+                    upserts.append(f"{mf}=JSON_MERGE_PATCH({dict_obj}, VALUES({mf}))")
                 on_duplicate = f"ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
             else:
                 new_table = f"`new_{table}`"
                 upserts = [f"{field}={new_table}.{field}" for field in upsert_fields]
+                for mf in merge_fields:
+                    dict_obj = f"COALESCE({table}.{mf}, '{{}}')"
+                    upserts.append(f"{mf}=JSON_MERGE_PATCH({dict_obj}, {new_table}.{mf})")
                 on_duplicate = f"AS {new_table} ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
 
         sql = """

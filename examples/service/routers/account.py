@@ -45,6 +45,7 @@ async def query_by_id_view(
     aid: int = Query(...),
 ):
     meta = AccountMgr.model._meta
+    print(AccountMgr.table, type(AccountMgr.table))
     print(dir(meta))
     print("db_complex_fields", meta.db_complex_fields, "", sep="\n")
     print("db_default_fields", meta.db_default_fields, "", sep="\n")

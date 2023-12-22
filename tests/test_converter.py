@@ -2,7 +2,7 @@ from copy import deepcopy
 from json import loads
 from unittest import TestCase
 
-from fastapi_esql import convert_dicts, escape_string
+from fastapi_esql import convert_dicts, escape_string, wrap_backticks
 
 
 class TestConvertDicts(TestCase):
@@ -31,3 +31,16 @@ class TestEscapeString(TestCase):
         assert escape_string("'") == "\\'"
         assert escape_string('"') == '\\"'
         assert escape_string('\\') == '\\\\'
+
+
+class TestWrapBackticks(TestCase):
+
+    def test_wrong_input(self):
+        with self.assertRaises(AssertionError):
+            wrap_backticks(1024)
+
+    def test_without_backticks(self):
+        assert wrap_backticks("order") == "`order`"
+
+    def test_with_backticks(self):
+        assert wrap_backticks("`order`") == "`order`"

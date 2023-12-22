@@ -7,6 +7,7 @@ from tortoise.queryset import Q
 from tortoise.query_utils import QueryModifier
 
 from ..const.error import QsParsingError, WrongParamsError
+from .converter import wrap_backticks
 
 logger = getLogger(__name__)
 # To ensure the functionality of the RawSQL

@@ -18,3 +18,8 @@ def convert_dicts(dicts, converters: Dict[str, Callable]):
                 d[field] = converter(value)
             except Exception as e:
                 logger.warning(f"Converting value `{value}` by `{converter.__name__}` failed => {e}")
+
+
+def wrap_backticks(identifier: str):
+    assert isinstance(identifier, str), f"identifier({identifier}) must be instance of `str`"
+    return f"`{str(identifier).strip('`')}`"

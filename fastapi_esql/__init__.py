@@ -20,6 +20,7 @@ from .utils import (
     Singleton,
     convert_dicts,
     timing,
+    wrap_backticks,
 )
 
 __version__ = "0.0.11"
@@ -39,6 +40,7 @@ __all__ = [
     "convert_dicts",
     "escape_string",
     "timing",
+    "wrap_backticks",
 ]
 
 dictConfig({

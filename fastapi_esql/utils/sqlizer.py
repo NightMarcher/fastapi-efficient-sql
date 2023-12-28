@@ -142,7 +142,7 @@ class SQLizer:
     WHERE {}
 {}""".format(
         ", ".join(fields),
-        table,
+        wrap_backticks(table),
         f" FORCE INDEX (`{index}`)" if index else "",
         cls.resolve_wheres(wheres, model),
         "\n".join(i for i in extras if i),
@@ -183,7 +183,7 @@ class SQLizer:
             json_obj = f"JSON_MERGE_PATCH({json_obj}, {cls.sqlize_value(merge_dict)})"
 
         sql = f"""
-    UPDATE {table} SET {json_field} =
+    UPDATE {wrap_backticks(table)} SET {json_field} =
     {json_obj}
     WHERE {cls.resolve_wheres(wheres, model)}
 """
@@ -216,14 +216,14 @@ class SQLizer:
             if using_values:
                 upserts = [f"{field}=VALUES({field})" for field in upsert_fields]
                 for mf in merge_fields:
-                    dict_obj = f"COALESCE({table}.{mf}, '{{}}')"
+                    dict_obj = f"COALESCE({wrap_backticks(table)}.{mf}, '{{}}')"
                     upserts.append(f"{mf}=JSON_MERGE_PATCH({dict_obj}, VALUES({mf}))")
                 on_duplicate = f"ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
             else:
                 new_table = f"`new_{table}`"
                 upserts = [f"{field}={new_table}.{field}" for field in upsert_fields]
                 for mf in merge_fields:
-                    dict_obj = f"COALESCE({table}.{mf}, '{{}}')"
+                    dict_obj = f"COALESCE({wrap_backticks(table)}.{mf}, '{{}}')"
                     upserts.append(f"{mf}=JSON_MERGE_PATCH({dict_obj}, {new_table}.{mf})")
                 on_duplicate = f"AS {new_table} ON DUPLICATE KEY UPDATE {', '.join(upserts)}"
 
@@ -233,7 +233,7 @@ class SQLizer:
     VALUES
 {}{}
 """.format(
-        table,
+        wrap_backticks(table),
         ", ".join(insert_fields),
         ",\n".join(values),
         f"\n    {on_duplicate}" if on_duplicate else "",
@@ -263,10 +263,10 @@ class SQLizer:
             assign_fields.append(f"{cls.sqlize_value(v)} {k}")
 
         sql = f"""
-    INSERT INTO {to_table or table}
+    INSERT INTO {wrap_backticks(to_table or table)}
       ({", ".join(fields)})
     SELECT {", ".join(remain_fields + assign_fields)}
-    FROM {table}
+    FROM {wrap_backticks(table)}
     WHERE {cls.resolve_wheres(wheres, model)}
 """
         logger.debug(sql)
@@ -319,15 +319,15 @@ class SQLizer:
         if not all([table, dicts, join_fields, update_fields]):
             raise WrongParamsError("Parameters `table`, `dicts`, `join_fields`, `update_fields` are required")
 
-        joins = [f"{table}.{jf}=tmp.{jf}" for jf in join_fields]
-        updates = [f"{table}.{uf}=tmp.{uf}" for uf in update_fields]
+        joins = [f"{wrap_backticks(table)}.{jf}=tmp.{jf}" for jf in join_fields]
+        updates = [f"{wrap_backticks(table)}.{uf}=tmp.{uf}" for uf in update_fields]
         merge_fields = merge_fields or []
         for mf in merge_fields:
-            dict_obj = f"COALESCE({table}.{mf}, '{{}}')"
-            updates.append(f"{table}.{mf}=JSON_MERGE_PATCH({dict_obj}, tmp.{mf})")
+            dict_obj = f"COALESCE({wrap_backticks(table)}.{mf}, '{{}}')"
+            updates.append(f"{wrap_backticks(table)}.{mf}=JSON_MERGE_PATCH({dict_obj}, tmp.{mf})")
 
         sql = f"""
-    UPDATE {table}
+    UPDATE {wrap_backticks(table)}
     JOIN ({SQLizer.build_fly_table(dicts, join_fields + update_fields + merge_fields, using_values, log_sql=False)}
     ) tmp ON {", ".join(joins)}
     SET {", ".join(updates)}

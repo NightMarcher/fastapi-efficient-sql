@@ -57,7 +57,7 @@ Generate sql and execute
 ```sql
     SELECT
       id, extend ->> '$.last_login.ipv4' ipv4, extend ->> '$.last_login.start_datetime' start_datetime, CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec
-    FROM account FORCE INDEX (`PRIMARY`)
+    FROM `account` FORCE INDEX (`PRIMARY`)
     WHERE id IN (1,2,3) AND gender=1
 ```
 
@@ -79,7 +79,7 @@ Generate sql and execute
 ```sql
     SELECT
       locale, gender, COUNT(1) cnt
-    FROM account
+    FROM `account`
     WHERE `id` BETWEEN 1 AND 12
     GROUP BY locale, gender
     HAVING cnt > 0
@@ -110,7 +110,7 @@ await AccountMgr.update_json_field(
 ```
 Generate sql and execute
 ```sql
-    UPDATE account SET extend =
+    UPDATE `account` SET extend =
     JSON_MERGE_PATCH(JSON_SET(JSON_REMOVE(COALESCE(extend, '{}'), '$.deprecated'), '$.last_login',CAST('{"ipv4": "209.182.101.161"}' AS JSON), '$.uuid','fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f'), '{"updated_at": "2022-10-30 21:34:15", "info": {"online_sec": 636}}')
     WHERE `id`=8
 ```
@@ -130,13 +130,13 @@ await AccountMgr.upsert_on_duplicate(
 ```
 Generate sql and execute
 ```sql
-    INSERT INTO account
+    INSERT INTO `account`
       (id, gender, name, locale, extend)
     VALUES
       (10, 1, '田中 知実', 'ja_JP', '{"rdm": 1}'),
       (11, 2, 'Tara Chadha', 'en_IN', '{"rdm": 10}'),
       (12, 2, '吴磊', 'zh_CN', '{"rdm": 9}')
-    AS `new_account` ON DUPLICATE KEY UPDATE gender=`new_account`.gender, name=`new_account`.name, extend=JSON_MERGE_PATCH(COALESCE(account.extend, '{}'), `new_account`.extend)
+    AS `new_account` ON DUPLICATE KEY UPDATE gender=`new_account`.gender, name=`new_account`.name, extend=JSON_MERGE_PATCH(COALESCE(`account`.extend, '{}'), `new_account`.extend)
 ```
 
 ### **insert_into_select**
@@ -155,10 +155,10 @@ await AccountMgr.insert_into_select(
 ```
 Generate sql and execute
 ```sql
-    INSERT INTO account_bak
+    INSERT INTO `account_bak`
       (gender, locale, active, name, extend)
     SELECT gender, CASE id WHEN 3 THEN 'zh_CN' WHEN 4 THEN 'en_US' WHEN 5 THEN 'fr_FR' ELSE '' END locale, False active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
-    FROM account
+    FROM `account`
     WHERE `id` IN (4,5,6)
 ```
 
@@ -176,13 +176,13 @@ await AccountMgr.bulk_update_from_dicts(
 ```
 Generate sql and execute
 ```sql
-    UPDATE account
+    UPDATE `account`
     JOIN (
         SELECT * FROM (
           VALUES
           ROW(7, False, 1, '{"test": 1, "debug": 0}'),
           ROW(15, True, 0, '{"test": 1, "debug": 0}')
         ) AS fly_table (id, active, gender, extend)
-    ) tmp ON account.id=tmp.id
-    SET account.active=tmp.active, account.gender=tmp.gender, account.extend=JSON_MERGE_PATCH(COALESCE(account.extend, '{}'), tmp.extend)
+    ) tmp ON `account`.id=tmp.id
+    SET `account`.active=tmp.active, `account`.gender=tmp.gender, `account`.extend=JSON_MERGE_PATCH(COALESCE(`account`.extend, '{}'), tmp.extend)
 ```

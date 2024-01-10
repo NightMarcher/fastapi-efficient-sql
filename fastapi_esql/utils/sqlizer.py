@@ -115,6 +115,7 @@ class SQLizer:
         table: str,
         fields: List[str],
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        *,
         index: Optional[str] = None,
         groups: Optional[List[str]] = None,
         having: Optional[str] = None,
@@ -156,6 +157,7 @@ class SQLizer:
         table: str,
         json_field: str,
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        *,
         merge_dict: Optional[Dict[str, Any]] = None,
         path_value_dict: Optional[Dict[str, Any]] = None,
         remove_paths: Optional[List[str]] = None,
@@ -196,6 +198,7 @@ class SQLizer:
         table: str,
         dicts: List[Dict[str, Any]],
         insert_fields: List[str],
+        *,
         upsert_fields: Optional[List[str]] = None,
         merge_fields: Optional[List[str]] = None,
         using_values: bool = False,
@@ -246,8 +249,9 @@ class SQLizer:
         cls,
         table: str,
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
-        remain_fields: List[str],
-        assign_field_dict: Dict[str, Any],
+        *,
+        remain_fields: List[str] = None,
+        assign_field_dict: Dict[str, Any] = None,
         to_table: Optional[str] = None,
         model: Optional[Model] = None,
     ) -> Optional[str]:
@@ -256,6 +260,8 @@ class SQLizer:
         if not any([remain_fields, assign_field_dict]):
             raise WrongParamsError("At least one no empty parameter is required between `remain_fields` and `assign_field_dict`")
 
+        remain_fields = remain_fields or []
+        assign_field_dict = assign_field_dict or {}
         fields = [*remain_fields]
         assign_fields = []
         for k, v in assign_field_dict.items():
@@ -313,6 +319,7 @@ class SQLizer:
         dicts: List[Dict[str, Any]],
         join_fields: List[str],
         update_fields: List[str],
+        *,
         merge_fields: Optional[List[str]] = None,
         using_values: bool = True,
     ) -> Optional[str]:

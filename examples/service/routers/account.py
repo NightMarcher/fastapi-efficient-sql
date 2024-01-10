@@ -112,15 +112,16 @@ async def query_last_login_view(
     aids: List[int] = Body(..., embed=True),
 ):
     dicts = await AccountMgr.select_custom_fields(
-        fields=[
+        [
             "id", "extend ->> '$.last_login.ipv4' ipv4",
             "extend ->> '$.last_login.start_datetime' start_datetime",
             "CAST(extend ->> '$.last_login.online_sec' AS SIGNED) online_sec"
         ],
-        wheres=f"id IN ({','.join(map(str, aids))}) AND gender=1",
+        f"id IN ({','.join(map(str, aids))}) AND gender=1",
         # wheres=Q(Q(id__in=aids), Q(gender=1), join_type="AND"),
         # wheres={"id__in": aids, "gender": 1},
         # wheres=[Q(id__in=aids), Q(gender=1)],
+        limit=1
     )
     return {"dicts": dicts}
 
@@ -181,14 +182,14 @@ async def bulk_clone_view(
 ):
     ok = await AccountMgr.insert_into_select(
         wheres=Q(id__in=aids),
-        remain_fields=["gender"],
+        # remain_fields=["gender"],
         assign_field_dict={
             "locale": Cases("id", {3: LocaleEnum.zh_CN, 4: LocaleEnum.en_US, 5: LocaleEnum.fr_FR}, default=""),
             "active": False,
             "name": RawSQL("CONCAT(LEFT(name, 26), ' [NEW]')"),
             "extend": {},
         },
-        to_table="account_bak",
+        # to_table="account_bak",
     )
     return {"ok": ok}
 

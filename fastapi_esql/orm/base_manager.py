@@ -25,9 +25,8 @@ class BaseManager(metaclass=AppMetaclass):
 
     @classmethod
     async def create_from_dict(cls, params: Dict[str, Any]) -> Optional[Model]:
-        params["using_db"] = cls.rw_conn
         try:
-            return await cls.model.create(**params)
+            return await cls.model.create(**params, using_db=cls.rw_conn)
         except Exception as e:
             logger.exception(e)
             return None
@@ -63,6 +62,7 @@ class BaseManager(metaclass=AppMetaclass):
         cls,
         fields: List[str],
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        *,
         index: Optional[str] = None,
         groups: Optional[List[str]] = None,
         having: Optional[str] = None,
@@ -76,13 +76,13 @@ class BaseManager(metaclass=AppMetaclass):
             cls.table,
             fields,
             wheres,
-            index,
-            groups,
-            having,
-            orders,
-            offset,
-            limit,
-            cls.model,
+            index=index,
+            groups=groups,
+            having=having,
+            orders=orders,
+            offset=offset,
+            limit=limit,
+            model=cls.model,
         )
         conn = conn or cls.ro_conn
         converters = {
@@ -96,6 +96,7 @@ class BaseManager(metaclass=AppMetaclass):
         cls,
         fields: List[str],
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        *,
         index: Optional[str] = None,
         groups: Optional[List[str]] = None,
         having: Optional[str] = None,
@@ -107,13 +108,13 @@ class BaseManager(metaclass=AppMetaclass):
             cls.table,
             fields,
             wheres,
-            index,
-            groups,
-            having,
-            orders,
-            0,
-            1,
-            cls.model,
+            index=index,
+            groups=groups,
+            having=having,
+            orders=orders,
+            offset=0,
+            limit=1,
+            model=cls.model,
         )
         conn = conn or cls.ro_conn
         converters = {
@@ -127,6 +128,7 @@ class BaseManager(metaclass=AppMetaclass):
         cls,
         json_field: str,
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
+        *,
         merge_dict: Optional[Dict[str, Any]] = None,
         path_value_dict: Optional[Dict[str, Any]] = None,
         remove_paths: Optional[List[str]] = None,
@@ -136,11 +138,11 @@ class BaseManager(metaclass=AppMetaclass):
             cls.table,
             json_field,
             wheres,
-            merge_dict,
-            path_value_dict,
-            remove_paths,
-            json_type,
-            cls.model,
+            merge_dict=merge_dict,
+            path_value_dict=path_value_dict,
+            remove_paths=remove_paths,
+            json_type=json_type,
+            model=cls.model,
         )
         return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)
 
@@ -149,6 +151,7 @@ class BaseManager(metaclass=AppMetaclass):
         cls,
         dicts: List[Dict[str, Any]],
         insert_fields: List[str],
+        *,
         upsert_fields: Optional[List[str]] = None,
         merge_fields: Optional[List[str]] = None,
         using_values: bool = False,
@@ -157,9 +160,9 @@ class BaseManager(metaclass=AppMetaclass):
             cls.table,
             dicts,
             insert_fields,
-            upsert_fields,
-            merge_fields,
-            using_values,
+            upsert_fields=upsert_fields,
+            merge_fields=merge_fields,
+            using_values=using_values,
         )
         return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)
 
@@ -167,17 +170,18 @@ class BaseManager(metaclass=AppMetaclass):
     async def insert_into_select(
         cls,
         wheres: Union[str, Q, Dict[str, Any], List[Q]],
-        remain_fields: List[str],
-        assign_field_dict: Dict[str, Any],
+        *,
+        remain_fields: List[str] = None,
+        assign_field_dict: Dict[str, Any] = None,
         to_table: Optional[str] = None,
     ):
         sql = SQLizer.insert_into_select(
             cls.table,
             wheres,
-            remain_fields,
-            assign_field_dict,
-            to_table,
-            cls.model,
+            remain_fields=remain_fields,
+            assign_field_dict=assign_field_dict,
+            to_table=to_table,
+            model=cls.model,
         )
         return await CursorHandler.exec_if_ok(sql, cls.rw_conn, logger)
 
@@ -187,6 +191,7 @@ class BaseManager(metaclass=AppMetaclass):
         dicts: List[Dict[str, Any]],
         join_fields: List[str],
         update_fields: List[str],
+        *,
         merge_fields: Optional[List[str]] = None,
         using_values: bool = True,
     ):
@@ -195,7 +200,7 @@ class BaseManager(metaclass=AppMetaclass):
             dicts,
             join_fields,
             update_fields,
-            merge_fields,
-            using_values,
+            merge_fields=merge_fields,
+            using_values=using_values,
         )
         return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)

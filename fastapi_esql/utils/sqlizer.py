@@ -336,7 +336,7 @@ class SQLizer:
         sql = f"""
     UPDATE {wrap_backticks(table)}
     JOIN ({SQLizer.build_fly_table(dicts, join_fields + update_fields + merge_fields, using_values, log_sql=False)}
-    ) tmp ON {", ".join(joins)}
+    ) tmp ON {" AND ".join(joins)}
     SET {", ".join(updates)}
 """
         logger.debug(sql)

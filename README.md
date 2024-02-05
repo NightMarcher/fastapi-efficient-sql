@@ -166,10 +166,10 @@ Generate sql and execute
 ```python
 await AccountMgr.bulk_update_from_dicts(
     [
-        {"id": 7, "active": False, "gender": GenderEnum.male, "extend": {"test": 1, "debug": 0}},
-        {"id": 15, "active": True, "gender": GenderEnum.unknown, "extend": {"test": 1, "debug": 0}}
+        {"id": 7, "active": False, "deleted": False, "gender": GenderEnum.male, "extend": {"test": 1, "debug": 0}},
+        {"id": 15, "active": True, "deleted": False, "gender": GenderEnum.unknown, "extend": {"test": 1, "debug": 0}}
     ],
-    join_fields=["id"],
+    join_fields=["id", "deleted"],
     update_fields=["active", "gender"],
     merge_fields=["extend"],
 )
@@ -180,9 +180,9 @@ Generate sql and execute
     JOIN (
         SELECT * FROM (
           VALUES
-          ROW(7, False, 1, '{"test": 1, "debug": 0}'),
-          ROW(15, True, 0, '{"test": 1, "debug": 0}')
-        ) AS fly_table (id, active, gender, extend)
-    ) tmp ON `account`.id=tmp.id
+          ROW(7, False, False, 1, '{"test": 1, "debug": 0}'),
+          ROW(15, False, True, 0, '{"test": 1, "debug": 0}')
+        ) AS fly_table (id, deleted, active, gender, extend)
+    ) tmp ON `account`.id=tmp.id AND `account`.deleted=tmp.deleted
     SET `account`.active=tmp.active, `account`.gender=tmp.gender, `account`.extend=JSON_MERGE_PATCH(COALESCE(`account`.extend, '{}'), tmp.extend)
 ```

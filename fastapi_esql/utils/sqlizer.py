@@ -162,6 +162,7 @@ class SQLizer:
         path_value_dict: Optional[Dict[str, Any]] = None,
         remove_paths: Optional[List[str]] = None,
         json_type: type = dict,
+        assign_field_dict: Dict[str, Any] = None,
         model: Optional[Model] = None,
     ) -> Optional[str]:
         if not all([table, json_field, wheres]):
@@ -184,11 +185,23 @@ class SQLizer:
         if merge_dict:
             json_obj = f"JSON_MERGE_PATCH({json_obj}, {cls.sqlize_value(merge_dict)})"
 
-        sql = f"""
-    UPDATE {wrap_backticks(table)} SET {json_field} =
-    {json_obj}
-    WHERE {cls.resolve_wheres(wheres, model)}
-"""
+        assign_field_dict = assign_field_dict or {}
+        assign_fields = []
+        for k, v in assign_field_dict.items():
+            assign_fields.append(f"{k}={cls.sqlize_value(v)}")
+        assign_field = ", ".join(assign_fields) if assign_fields else None
+
+        sql = """
+    UPDATE {} SET {} =
+    {}{}
+    WHERE {}
+""".format(
+        wrap_backticks(table),
+        json_field,
+        json_obj,
+        "\n    , " + assign_field if assign_field else "",
+        cls.resolve_wheres(wheres, model),
+    )
         logger.debug(sql)
         return sql
 

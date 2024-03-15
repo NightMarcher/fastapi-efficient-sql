@@ -133,6 +133,7 @@ class BaseManager(metaclass=AppMetaclass):
         path_value_dict: Optional[Dict[str, Any]] = None,
         remove_paths: Optional[List[str]] = None,
         json_type: type = dict,
+        assign_field_dict: Dict[str, Any] = None,
     ):
         sql = SQLizer.update_json_field(
             cls.table,
@@ -142,6 +143,7 @@ class BaseManager(metaclass=AppMetaclass):
             path_value_dict=path_value_dict,
             remove_paths=remove_paths,
             json_type=json_type,
+            assign_field_dict=assign_field_dict,
             model=cls.model,
         )
         return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)

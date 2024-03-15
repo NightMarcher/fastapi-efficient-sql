@@ -200,6 +200,37 @@ class TestSQLizer(TestCase):
     WHERE `id`=8
 """
 
+        sql = SQLizer.update_json_field(
+            self.table,
+            json_field="extend",
+            wheres=Q(id=8),
+            merge_dict={
+                "updated_at": "2022-10-30 21:34:15",
+                "info": {
+                    "online_sec": 636,
+                }
+            },
+            path_value_dict={
+                "$.last_login": {
+                    "ipv4": "209.182.101.161",
+                },
+                "$.uuid": "fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f",
+            },
+            remove_paths=["$.deprecated"],
+            json_type=dict,
+            assign_field_dict={
+                "active": True,
+                "name": "new_name",
+            },
+            model=self.model,
+        )
+        assert sql == """
+    UPDATE `account` SET extend =
+    JSON_MERGE_PATCH(JSON_SET(JSON_REMOVE(COALESCE(extend, '{}'), '$.deprecated'), '$.last_login',CAST('{"ipv4": "209.182.101.161"}' AS JSON), '$.uuid','fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f'), '{"updated_at": "2022-10-30 21:34:15", "info": {"online_sec": 636}}')
+    , active=True, name='new_name'
+    WHERE `id`=8
+"""
+
     def test_upsert_on_duplicate(self):
         with self.assertRaises(WrongParamsError):
             SQLizer.upsert_on_duplicate(

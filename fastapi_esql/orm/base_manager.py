@@ -185,7 +185,7 @@ class BaseManager(metaclass=AppMetaclass):
             to_table=to_table,
             model=cls.model,
         )
-        return await CursorHandler.exec_if_ok(sql, cls.rw_conn, logger)
+        return await CursorHandler.sum_row_cnt(sql, cls.rw_conn, logger)
 
     @classmethod
     async def bulk_update_from_dicts(

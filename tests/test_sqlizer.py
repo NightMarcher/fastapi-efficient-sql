@@ -68,26 +68,53 @@ class TestSQLizer(TestCase):
         orders = SQLizer.resolve_orders(["-created_at", "name"])
         assert orders == "created_at DESC, name ASC"
 
-    def test_sqlize_value(self):
-        assert SQLizer.sqlize_value(None) == "NULL"
+    def test_sqlize_value_v1(self):
+        assert SQLizer.sqlize_value(None, ver=1) == "NULL"
 
         raw_sql = RawSQL("statement")
-        assert SQLizer.sqlize_value(raw_sql) == raw_sql.sql
+        assert SQLizer.sqlize_value(raw_sql, ver=1) == raw_sql.sql
         cases = Cases("is_ok", {0: "No", 1: "Yes"})
-        assert SQLizer.sqlize_value(cases) == cases.sql
+        assert SQLizer.sqlize_value(cases, ver=1) == cases.sql
 
-        assert SQLizer.sqlize_value(1024) == "1024"
-        assert SQLizer.sqlize_value(0.125) == "0.125"
-        assert SQLizer.sqlize_value(True) == "True"
+        assert SQLizer.sqlize_value(GenderEnum.unknown, ver=1) == "0"
+        assert SQLizer.sqlize_value(LocaleEnum.zh_CN, ver=1) == "'zh_CN'"
+
+        assert SQLizer.sqlize_value(1024, ver=1) == "1024"
+        assert SQLizer.sqlize_value(0.125, ver=1) == "0.125"
+        assert SQLizer.sqlize_value(True, ver=1) == "True"
 
         assert (
-            SQLizer.sqlize_value({"gender": 0, "name": "羊淑兰"}, to_json=True)
+            SQLizer.sqlize_value({"gender": 0, "name": "羊淑兰"}, to_json=True, ver=1)
             == """CAST('{"gender": 0, "name": "羊淑兰"}' AS JSON)"""
         )
-        assert SQLizer.sqlize_value([1, 2, 4]) == "'[1, 2, 4]'"
-        assert SQLizer.sqlize_value(("a", "b", "c")) == """'["a", "b", "c"]'"""
+        assert SQLizer.sqlize_value([1, 2, 4], ver=1) == "'[1, 2, 4]'"
+        assert SQLizer.sqlize_value(("a", "b", "c"), ver=1) == """'["a", "b", "c"]'"""
 
-        assert SQLizer.sqlize_value(datetime(2023, 1, 1, 12, 30)) == "'2023-01-01 12:30:00'"
+        assert SQLizer.sqlize_value(datetime(2023, 1, 1, 12, 30), ver=1) == "'2023-01-01 12:30:00'"
+
+    def test_escape_v2(self):
+        assert SQLizer.escape(None, ver=2) == "NULL"
+
+        raw_sql = RawSQL("statement")
+        assert SQLizer.escape(raw_sql, ver=2) == raw_sql.sql
+        cases = Cases("is_ok", {0: "No", 1: "Yes"})
+        assert SQLizer.escape(cases, ver=2) == cases.sql
+
+        assert SQLizer.escape(GenderEnum.unknown, ver=2) == "0"
+        assert SQLizer.escape(LocaleEnum.zh_CN, ver=2) == "'zh_CN'"
+
+        assert SQLizer.escape(1024, ver=2) == "1024"
+        assert SQLizer.escape(0.125, ver=2) == "0.125"
+        assert SQLizer.escape(True, ver=2) == "1"
+
+        assert (
+            SQLizer.escape({"gender": 0, "name": "羊淑兰"}, to_json=True, ver=2)
+            == """CAST('{"gender": 0, "name": "羊淑兰"}' AS JSON)"""
+        )
+        assert SQLizer.escape([1, 2, 4], ver=2) == "'[1, 2, 4]'"
+        assert SQLizer.escape(("a", "b", "c"), ver=2) == """'["a", "b", "c"]'"""
+
+        assert SQLizer.escape(datetime(2023, 1, 1, 12, 30), ver=2) == "'2023-01-01T12:30:00'"
 
     def test_select_custom_fields(self):
         with self.assertRaises(WrongParamsError):
@@ -227,7 +254,7 @@ class TestSQLizer(TestCase):
         assert sql == """
     UPDATE `account` SET extend =
     JSON_MERGE_PATCH(JSON_SET(JSON_REMOVE(COALESCE(extend, '{}'), '$.deprecated'), '$.last_login',CAST('{"ipv4": "209.182.101.161"}' AS JSON), '$.uuid','fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f'), '{"updated_at": "2022-10-30 21:34:15", "info": {"online_sec": 636}}')
-    , active=True, name='new_name'
+    , active=1, name='new_name'
     WHERE `id`=8
 """
 
@@ -326,7 +353,7 @@ class TestSQLizer(TestCase):
         assert archive_sql == """
     INSERT INTO `account_bak`
       (gender, locale, active, name, extend)
-    SELECT gender, CASE id WHEN 3 THEN 'zh_CN' WHEN 4 THEN 'en_US' WHEN 5 THEN 'fr_FR' ELSE '' END locale, False active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
+    SELECT gender, CASE id WHEN 3 THEN 'zh_CN' WHEN 4 THEN 'en_US' WHEN 5 THEN 'fr_FR' ELSE '' END locale, 0 active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
     FROM `account`
     WHERE `id` IN (4,5,6)
 """
@@ -346,7 +373,7 @@ class TestSQLizer(TestCase):
         assert copy_sql == """
     INSERT INTO `account`
       (gender, locale, active, name, extend)
-    SELECT gender, CASE id WHEN 3 THEN 'zh_CN' WHEN 4 THEN 'en_US' WHEN 5 THEN 'fr_FR' ELSE '' END locale, False active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
+    SELECT gender, CASE id WHEN 3 THEN 'zh_CN' WHEN 4 THEN 'en_US' WHEN 5 THEN 'fr_FR' ELSE '' END locale, 0 active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
     FROM `account`
     WHERE `id` IN (4,5,6)
 """
@@ -368,9 +395,9 @@ class TestSQLizer(TestCase):
         )
         assert old_sql == """
         SELECT * FROM (
-          SELECT 7 id, False active, 1 gender
+          SELECT 7 id, 0 active, 1 gender
             UNION
-          SELECT 15 id, True active, 0 gender
+          SELECT 15 id, 1 active, 0 gender
         ) AS fly_table"""
 
         new_sql = SQLizer.build_fly_table(
@@ -384,8 +411,8 @@ class TestSQLizer(TestCase):
         assert new_sql == """
         SELECT * FROM (
           VALUES
-          ROW(7, False, 1),
-          ROW(15, True, 0)
+          ROW(7, 0, 1),
+          ROW(15, 1, 0)
         ) AS fly_table (id, active, gender)"""
 
     def test_bulk_update_from_dicts(self):
@@ -412,8 +439,8 @@ class TestSQLizer(TestCase):
     JOIN (
         SELECT * FROM (
           VALUES
-          ROW(7, False, False, 1, '{"test": 1, "debug": 0}'),
-          ROW(15, False, True, 0, '{"test": 1, "debug": 0}')
+          ROW(7, 0, 0, 1, '{"test": 1, "debug": 0}'),
+          ROW(15, 0, 1, 0, '{"test": 1, "debug": 0}')
         ) AS fly_table (id, deleted, active, gender, extend)
     ) tmp ON `account`.id=tmp.id AND `account`.deleted=tmp.deleted
     SET `account`.active=tmp.active, `account`.gender=tmp.gender, `account`.extend=JSON_MERGE_PATCH(COALESCE(`account`.extend, '{}'), tmp.extend)

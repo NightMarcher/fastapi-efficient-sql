@@ -1,6 +1,6 @@
 from logging.config import dictConfig
 
-from tortoise.converters import escape_string
+from tortoise.converters import escape_item, escape_string
 from tortoise.queryset import Q
 
 from .const import (
@@ -23,7 +23,7 @@ from .utils import (
     wrap_backticks,
 )
 
-__version__ = "0.0.14"
+__version__ = "0.0.15"
 
 __all__ = [
     "QsParsingError",
@@ -38,6 +38,7 @@ __all__ = [
     "SQLizer",
     "Singleton",
     "convert_dicts",
+    "escape_item",
     "escape_string",
     "timing",
     "wrap_backticks",

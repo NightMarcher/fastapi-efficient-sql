@@ -1,8 +1,10 @@
+from enum import Enum
 from logging import getLogger
 from json import dumps
 from typing import Any, Dict, List, Optional, Union
 
 from tortoise import Model, __version__ as tortoise_version
+from tortoise.converters import escape_item
 from tortoise.queryset import Q
 from tortoise.query_utils import QueryModifier
 
@@ -35,10 +37,10 @@ class Cases:
     @property
     def sql(self):
         whens = " ".join(
-            f"WHEN {k} THEN {SQLizer.sqlize_value(v)}"
+            f"WHEN {k} THEN {SQLizer.escape(v)}"
             for k, v in self.whens.items()
         )
-        else_ = " ELSE " + SQLizer.sqlize_value(self.default) if self.default is not None else ""
+        else_ = " ELSE " + SQLizer.escape(self.default) if self.default is not None else ""
         return f"CASE {self.field} {whens}{else_} END"
 
 
@@ -89,25 +91,51 @@ class SQLizer:
         return ", ".join(orders_)
 
     @classmethod
-    def sqlize_value(cls, value, to_json=False) -> str:
+    def escape(cls, obj, to_json=False, ver=2) -> str:
+        if ver == 1:
+            return cls._escape_v1(obj, to_json)
+        elif ver == 2:
+            return cls._escape_v2(obj, to_json)
+        return cls._escape_v1(obj, to_json)
+
+    @classmethod
+    def _escape_v1(cls, obj, to_json=False):
         """
-        Works like aiomysql.connection.Connection.escape
+        Original DIY `escape` method
         """
-        if value is None:
+        if obj is None:
             return "NULL"
-        elif isinstance(value, (Cases, RawSQL)):
-            return value.sql
-        elif isinstance(value, (int, float, bool)):
-            return f"{value}"
-        elif isinstance(value, (dict, list, tuple)):
-            dumped = dumps(value, ensure_ascii=False)
+        elif isinstance(obj, (Cases, RawSQL)):
+            return obj.sql
+        elif isinstance(obj, (int, float, bool)):
+            return f"{obj}"
+        elif isinstance(obj, (dict, list, tuple)):
+            dumped = dumps(obj, ensure_ascii=False)
             if to_json:
                 return f"CAST('{dumped}' AS JSON)"
                 # Same with above line
                 # return f"JSON_EXTRACT('{dumped}', '$')"
             return f"'{dumped}'"
         else:
-            return f"'{value}'"
+            return f"'{obj}'"
+
+    @classmethod
+    def _escape_v2(cls, obj, to_json=False):
+        """
+        Escape whatever value you pass to it.
+        Partially copied from aiomysql.connection.Connection.escape
+        """
+        if isinstance(obj, (Cases, RawSQL)):
+            return obj.sql
+        elif isinstance(obj, Enum):
+            return cls._escape_v2(obj.value)
+        elif isinstance(obj, (dict, list, tuple)):
+            dumped = dumps(obj, ensure_ascii=False)
+            if to_json:
+                return f"CAST('{dumped}' AS JSON)"
+            return f"'{dumped}'"
+        else:
+            return escape_item(obj, "utf8mb4")
 
     @classmethod
     def select_custom_fields(
@@ -178,17 +206,17 @@ class SQLizer:
             json_obj = f"JSON_REMOVE({json_obj}, {rps})"
         if path_value_dict:
             pvs = [
-                f"'{path}',{cls.sqlize_value(value, to_json=True)}"
+                f"'{path}',{cls.escape(value, to_json=True)}"
                 for (path, value) in path_value_dict.items()
             ]
             json_obj = f"JSON_SET({json_obj}, {', '.join(pvs)})"
         if merge_dict:
-            json_obj = f"JSON_MERGE_PATCH({json_obj}, {cls.sqlize_value(merge_dict)})"
+            json_obj = f"JSON_MERGE_PATCH({json_obj}, {cls.escape(merge_dict)})"
 
         assign_field_dict = assign_field_dict or {}
         assign_fields = []
         for k, v in assign_field_dict.items():
-            assign_fields.append(f"{k}={cls.sqlize_value(v)}")
+            assign_fields.append(f"{k}={cls.escape(v)}")
         assign_field = ", ".join(assign_fields) if assign_fields else None
 
         sql = """
@@ -220,7 +248,7 @@ class SQLizer:
             raise WrongParamsError("Parameters `table`, `dicts`, `insert_fields` are required")
 
         values = [
-            f"      ({', '.join(cls.sqlize_value(d.get(f)) for f in insert_fields)})"
+            f"      ({', '.join(cls.escape(d.get(f)) for f in insert_fields)})"
             for d in dicts
         ]
         # NOTE Beginning with MySQL 8.0.19, it is possible to use an alias for the row
@@ -279,7 +307,7 @@ class SQLizer:
         assign_fields = []
         for k, v in assign_field_dict.items():
             fields.append(k)
-            assign_fields.append(f"{cls.sqlize_value(v)} {k}")
+            assign_fields.append(f"{cls.escape(v)} {k}")
 
         sql = f"""
     INSERT INTO {wrap_backticks(to_table or table)}
@@ -304,14 +332,14 @@ class SQLizer:
 
         if using_values:
             rows = [
-                f"          ROW({', '.join(cls.sqlize_value(d.get(f)) for f in fields)})"
+                f"          ROW({', '.join(cls.escape(d.get(f)) for f in fields)})"
                 for d in dicts
             ]
             values = "VALUES\n" + ",\n".join(rows)
             table = f"fly_table ({', '.join(fields)})"
         else:
             rows = [
-                f"SELECT {', '.join(f'{cls.sqlize_value(d.get(f))} {f}' for f in fields)}"
+                f"SELECT {', '.join(f'{cls.escape(d.get(f))} {f}' for f in fields)}"
                 for d in dicts
             ]
             values = "\n            UNION\n          ".join(rows)
@@ -354,3 +382,6 @@ class SQLizer:
 """
         logger.debug(sql)
         return sql
+
+
+SQLizer.sqlize_value = SQLizer.escape

@@ -116,7 +116,7 @@ Generate sql and execute
 ```sql
     UPDATE `account` SET extend =
     JSON_MERGE_PATCH(JSON_SET(JSON_REMOVE(COALESCE(extend, '{}'), '$.deprecated'), '$.last_login',CAST('{"ipv4": "209.182.101.161"}' AS JSON), '$.uuid','fd04f7f2-24fc-4a73-a1d7-b6e99a464c5f'), '{"updated_at": "2022-10-30 21:34:15", "info": {"online_sec": 636}}')
-    , active=True, name='new_name'
+    , active=1, name='new_name'
     WHERE `id`=8
 ```
 
@@ -162,7 +162,7 @@ Generate sql and execute
 ```sql
     INSERT INTO `account_bak`
       (gender, locale, active, name, extend)
-    SELECT gender, CASE id WHEN 3 THEN 'zh_CN' WHEN 4 THEN 'en_US' WHEN 5 THEN 'fr_FR' ELSE '' END locale, False active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
+    SELECT gender, CASE id WHEN 3 THEN 'zh_CN' WHEN 4 THEN 'en_US' WHEN 5 THEN 'fr_FR' ELSE '' END locale, 0 active, CONCAT(LEFT(name, 26), ' [NEW]') name, '{}' extend
     FROM `account`
     WHERE `id` IN (4,5,6)
 ```
@@ -185,8 +185,8 @@ Generate sql and execute
     JOIN (
         SELECT * FROM (
           VALUES
-          ROW(7, False, False, 1, '{"test": 1, "debug": 0}'),
-          ROW(15, False, True, 0, '{"test": 1, "debug": 0}')
+          ROW(7, 0, 0, 1, '{"test": 1, "debug": 0}'),
+          ROW(15, 0, 1, 0, '{"test": 1, "debug": 0}')
         ) AS fly_table (id, deleted, active, gender, extend)
     ) tmp ON `account`.id=tmp.id AND `account`.deleted=tmp.deleted
     SET `account`.active=tmp.active, `account`.gender=tmp.gender, `account`.extend=JSON_MERGE_PATCH(COALESCE(`account`.extend, '{}'), tmp.extend)
